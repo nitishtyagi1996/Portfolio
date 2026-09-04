@@ -119,7 +119,8 @@
   }
   .kicker{
     font-family:'IBM Plex Mono', monospace;
-    font-size:13px;
+    font-size:15px;
+    letter-spacing:0.02em;
     color:var(--ink-soft);
     margin:0 0 18px;
   }
@@ -143,7 +144,7 @@
   }
   .hero-chart-caption{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
+    font-size:13px;
     color:var(--ink-soft);
     text-align:right;
     margin-top:6px;
@@ -160,7 +161,7 @@
   section:last-of-type{border-bottom:none;}
   .section-label{
     font-family:'IBM Plex Mono', monospace;
-    font-size:13px;
+    font-size:14px;
     color:var(--ink-soft);
     padding-top:4px;
   }
@@ -208,7 +209,7 @@
   }
   .skill-note{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
+    font-size:13px;
     color:var(--ink-soft);
     margin-top:24px;
   }
@@ -244,7 +245,7 @@
   }
   .project-tag{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
+    font-size:13px;
     color:var(--brass);
     white-space:nowrap;
   }
@@ -260,7 +261,7 @@
   }
   .tool-chip{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
+    font-size:13px;
     color:var(--ink-soft);
     border:1px solid var(--line);
     padding:4px 10px;
@@ -303,7 +304,7 @@
   }
   .star-tag{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
+    font-size:13px;
     color:var(--green);
     white-space:nowrap;
   }
@@ -316,7 +317,7 @@
   .star-row:last-child{margin-bottom:0;}
   .star-label{
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
+    font-size:13px;
     color:var(--ink-soft);
     padding-top:2px;
   }
@@ -329,7 +330,69 @@
     .star-label{padding-top:0;}
   }
 
-  /* ---- Resources (downloads) ---- */
+  /* ---- Avatar mark ---- */
+  .avatar-mark{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:linear-gradient(135deg, var(--green), var(--brass));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:22px;
+    box-shadow:0 6px 18px -8px rgba(28,35,33,0.35);
+  }
+  .avatar-mark span{
+    font-family:'Newsreader', serif;
+    font-weight:600;
+    font-size:22px;
+    color:var(--paper);
+    letter-spacing:0.02em;
+  }
+
+  /* ---- Small line icons ---- */
+  .row-icon{
+    flex:0 0 auto;
+    width:22px;
+    height:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--green);
+  }
+  .row-icon svg{width:18px; height:18px;}
+  .skill-row{align-items:center;}
+  .skill-row .skill-name{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .job-head-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .job-icon{
+    flex:0 0 auto;
+    width:34px;
+    height:34px;
+    border-radius:8px;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--brass);
+  }
+  .job-icon svg{width:18px; height:18px;}
+
+  /* ---- AI workflow diagram ---- */
+  .flow-diagram{
+    width:100%;
+    height:auto;
+    margin:24px 0 8px;
+  }
+
   .resource-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -353,7 +416,7 @@
   }
   .resource-kind{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
+    font-size:13px;
     color:var(--green);
   }
   .resource-card h3{
@@ -370,7 +433,7 @@
   .resource-link{
     margin-top:4px;
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
+    font-size:13px;
     color:var(--ink);
     text-decoration:none;
     border-bottom:1px solid var(--ink);
@@ -394,10 +457,15 @@
   .job-head{
     display:flex;
     justify-content:space-between;
-    align-items:baseline;
+    align-items:center;
     gap:16px;
     flex-wrap:wrap;
     margin-bottom:4px;
+  }
+  .job-head-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
   }
   .job-head h3{
     font-family:'Newsreader', serif;
@@ -407,7 +475,7 @@
   }
   .job-dates{
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
+    font-size:13px;
     color:var(--ink-soft);
     white-space:nowrap;
   }
@@ -482,7 +550,7 @@
   footer{
     padding:36px 0 60px;
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
+    font-size:13px;
     color:var(--ink-soft);
   }
 
@@ -522,6 +590,7 @@
   <header class="hero">
     <div class="hero-grid">
       <div>
+        <div class="avatar-mark"><span>NT</span></div>
         <p class="kicker">Nitish Tyagi — business analyst</p>
         <h1 class="name">I turn business problems<br>into decisions, faster.</h1>
         <p class="lede">Power BI, Excel and SQL are the base — built over five years running my own business. AI tools are how I move through the work quicker now, with more options considered along the way.</p>
@@ -593,27 +662,27 @@
       <h2>Core skills</h2>
       <div class="skill-rows">
         <div class="skill-row">
-          <span class="skill-name">Power BI</span>
+          <span class="skill-name"><span class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="12" width="4" height="8"/><rect x="10" y="7" width="4" height="13"/><rect x="16" y="3" width="4" height="17"/></svg></span>Power BI</span>
           <div class="skill-track"><div class="skill-fill" style="width:75%"></div></div>
         </div>
         <div class="skill-row">
-          <span class="skill-name">Advanced Excel</span>
+          <span class="skill-name"><span class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg></span>Advanced Excel</span>
           <div class="skill-track"><div class="skill-fill" style="width:85%"></div></div>
         </div>
         <div class="skill-row">
-          <span class="skill-name">Power Query</span>
+          <span class="skill-name"><span class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4-4 4"/><line x1="10" y1="16" x2="18" y2="16"/></svg></span>Power Query</span>
           <div class="skill-track"><div class="skill-fill" style="width:65%"></div></div>
         </div>
         <div class="skill-row">
-          <span class="skill-name">SQL</span>
+          <span class="skill-name"><span class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg></span>SQL</span>
           <div class="skill-track"><div class="skill-fill" style="width:45%"></div></div>
         </div>
         <div class="skill-row">
-          <span class="skill-name">KPI &amp; dashboard reporting</span>
+          <span class="skill-name"><span class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>KPI &amp; dashboard reporting</span>
           <div class="skill-track"><div class="skill-fill" style="width:75%"></div></div>
         </div>
         <div class="skill-row">
-          <span class="skill-name">AI-assisted analysis</span>
+          <span class="skill-name"><span class="row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="4"/></svg></span>AI-assisted analysis</span>
           <div class="skill-track"><div class="skill-fill" style="width:60%"></div></div>
         </div>
       </div>
@@ -627,6 +696,39 @@
       <h2>AI as a working tool, not a headline</h2>
       <p class="lead">Everyone's talking about AI replacing analyst work. What I've found in practice is closer to the opposite — it's how one person can cover ground that used to take a small team, if you still bring the judgment.</p>
       <p>In practice that looks like: using an AI assistant to write a first-draft SQL query or Excel formula and then correcting it, having it summarize a messy sales export before I build the dashboard, or running a business decision past it to surface options I hadn't thought of before I commit to one. It doesn't replace checking the numbers myself — it just means I spend that time on the decision instead of on the setup.</p>
+
+      <svg class="flow-diagram" viewBox="0 0 720 130" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#B9BDAF"/>
+          </marker>
+        </defs>
+        <line x1="160" y1="45" x2="200" y2="45" stroke="#B9BDAF" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="350" y1="45" x2="390" y2="45" stroke="#B9BDAF" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="540" y1="45" x2="580" y2="45" stroke="#B9BDAF" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+        <rect x="0" y="10" width="160" height="70" rx="10" fill="#F7F8F3" stroke="#D3D6C9"/>
+        <text x="80" y="40" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#4B534E">messy sales /</text>
+        <text x="80" y="56" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#4B534E">inventory data</text>
+
+        <rect x="200" y="10" width="150" height="70" rx="10" fill="#F7F8F3" stroke="#3F6C4E"/>
+        <text x="275" y="40" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#3F6C4E">AI-assisted</text>
+        <text x="275" y="56" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#3F6C4E">cleanup &amp; drafts</text>
+
+        <rect x="390" y="10" width="150" height="70" rx="10" fill="#F7F8F3" stroke="#D3D6C9"/>
+        <text x="465" y="40" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#4B534E">my analysis</text>
+        <text x="465" y="56" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#4B534E">&amp; judgment</text>
+
+        <rect x="580" y="10" width="140" height="70" rx="10" fill="#F7F8F3" stroke="#8A6A2F"/>
+        <text x="650" y="40" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#8A6A2F">business</text>
+        <text x="650" y="56" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#8A6A2F">decision</text>
+
+        <text x="80" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4B534E">raw</text>
+        <text x="275" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4B534E">faster</text>
+        <text x="465" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4B534E">checked</text>
+        <text x="650" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4B534E">owned</text>
+      </svg>
+
       <div class="project-tools">
         <span class="tool-chip">faster first drafts</span>
         <span class="tool-chip">more options explored</span>
@@ -642,7 +744,10 @@
 
       <div class="job">
         <div class="job-head">
-          <h3>Data Management Specialist</h3>
+          <div class="job-head-row">
+            <span class="job-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v8M8 12h8"/><circle cx="12" cy="12" r="9"/></svg></span>
+            <h3>Data Management Specialist</h3>
+          </div>
           <span class="job-dates">2015 — 2018</span>
         </div>
         <p class="job-company">Janta Medical Store</p>
@@ -654,7 +759,10 @@
 
       <div class="job">
         <div class="job-head">
-          <h3>Managing Director</h3>
+          <div class="job-head-row">
+            <span class="job-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></span>
+            <h3>Managing Director</h3>
+          </div>
           <span class="job-dates">2018 — 2020</span>
         </div>
         <p class="job-company">ST House JMS Group — Pattaya, Thailand</p>
@@ -668,7 +776,10 @@
 
       <div class="job">
         <div class="job-head">
-          <h3>Founder &amp; Operations Manager</h3>
+          <div class="job-head-row">
+            <span class="job-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="10"/><path d="M3 10l9-6 9 6"/><line x1="12" y1="14" x2="12" y2="17"/></svg></span>
+            <h3>Founder &amp; Operations Manager</h3>
+          </div>
           <span class="job-dates">2020 — 2025</span>
         </div>
         <p class="job-company">NT Pharmachem — wholesale pharmaceutical distribution business</p>
@@ -682,7 +793,10 @@
 
       <div class="job">
         <div class="job-head">
-          <h3>Business Operations Executive</h3>
+          <div class="job-head-row">
+            <span class="job-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.3-4.9-2.6-4.9 2.6.9-5.3-4-3.9 5.5-.8z"/></svg></span>
+            <h3>Business Operations Executive</h3>
+          </div>
           <span class="job-dates">2025 — present</span>
         </div>
         <p class="job-company">Swasole — demi-fine jewellery brand</p>
@@ -853,29 +967,36 @@
       <div class="resource-grid">
 
         <div class="resource-card">
-          <span class="resource-kind">Excel &amp; interactive dashboard</span>
+          <span class="resource-kind"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-3px; margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="21"/></svg>Excel &amp; interactive dashboard</span>
           <h3>Sales Performance Dashboard</h3>
           <p>Monthly sales, revenue, and product performance KPIs, with underlying raw data and summary sheets.</p>
-          <a class="resource-link" href="sales-performance-dashboard.html">View live dashboard &rrarr;</a>
+          <a class="resource-link" href="sales-performance-dashboard.html">View live dashboard →</a>
           <a class="resource-link" href="sales-performance-dashboard.xlsx">Download Excel workbook</a>
         </div>
 
         <div class="resource-card">
-          <span class="resource-kind">Power BI</span>
+          <span class="resource-kind"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-3px; margin-right:4px;"><rect x="4" y="12" width="4" height="8"/><rect x="10" y="7" width="4" height="13"/><rect x="16" y="3" width="4" height="17"/></svg>Power BI</span>
+          <h3>Swasole Sales Dashboard</h3>
+          <p>The live Power BI file behind the sales dashboard — open in Power BI Desktop to explore the model directly.</p>
+          <a class="resource-link" href="reports/swasole-sales-dashboard.pbix">Download .pbix file</a>
+        </div>
+
+        <div class="resource-card">
+          <span class="resource-kind"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-3px; margin-right:4px;"><rect x="4" y="12" width="4" height="8"/><rect x="10" y="7" width="4" height="13"/><rect x="16" y="3" width="4" height="17"/></svg>Power BI</span>
           <h3>Inventory Management Dashboard</h3>
           <p>Stock movement, reorder points, and inventory ageing.</p>
           <a class="resource-link" href="reports/inventory-management-dashboard.pdf">reports/inventory-management-dashboard.pdf</a>
         </div>
 
         <div class="resource-card">
-          <span class="resource-kind">Excel</span>
+          <span class="resource-kind"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-3px; margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="21"/></svg>Excel</span>
           <h3>Reporting Templates</h3>
           <p>Standardized sales, expense, and product tracking templates.</p>
           <a class="resource-link" href="reports/swasole-reporting-templates.xlsx">reports/swasole-reporting-templates.xlsx</a>
         </div>
 
         <div class="resource-card">
-          <span class="resource-kind">PowerPoint</span>
+          <span class="resource-kind"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-3px; margin-right:4px;"><rect x="3" y="4" width="18" height="14" rx="1"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="18" x2="12" y2="21"/></svg>PowerPoint</span>
           <h3>MBA Capstone — Swasole Analysis</h3>
           <p>SWOT, PESTEL, ABC, risk &amp; financial ratio analysis.</p>
           <a class="resource-link" href="reports/mba-capstone-swasole.pptx">reports/mba-capstone-swasole.pptx</a>

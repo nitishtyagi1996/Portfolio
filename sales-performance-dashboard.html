@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Performance Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#0B1220;
+    --navy-2:#121B2E;
+    --bg:#F3F5F9;
+    --card:#FFFFFF;
+    --ink:#111827;
+    --muted:#6B7280;
+    --line:#E7EAF0;
+    --teal:#0EA5A0;
+    --indigo:#5B5FEF;
+    --rose:#E8447A;
+    --amber:#F2A93B;
+    --green:#20B26C;
+    --shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px -12px rgba(16,24,40,.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Manrope',system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 500px at 100% -10%, rgba(91,95,239,.10), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .mono{font-family:'DM Mono',monospace;}
+
+  /* TOP BAR */
+  .topbar{
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+    color:#fff;
+    padding:22px 32px 60px 32px;
+    position:relative;
+    overflow:hidden;
+  }
+  .topbar::before{
+    content:"";
+    position:absolute; right:-60px; top:-80px;
+    width:320px;height:320px;border-radius:50%;
+    background: radial-gradient(circle, rgba(91,95,239,.35), transparent 70%);
+  }
+  .topbar::after{
+    content:"";
+    position:absolute; left:20%; bottom:-140px;
+    width:260px;height:260px;border-radius:50%;
+    background: radial-gradient(circle, rgba(14,165,160,.28), transparent 70%);
+  }
+  .topbar-inner{position:relative; z-index:2; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;}
+  .eyebrow{
+    text-transform:uppercase; letter-spacing:.14em; font-size:11px; font-weight:700;
+    color:#8FD9D4; margin:0 0 6px 0;
+  }
+  h1{margin:0; font-size:28px; font-weight:800; letter-spacing:-0.01em;}
+  .sub{color:#AAB4C8; font-size:13.5px; margin-top:6px;}
+  .sub b{color:#fff;}
+  .badge{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.14);
+    padding:8px 14px; border-radius:10px;
+    font-size:12.5px; color:#D7DEEC;
+    backdrop-filter: blur(6px);
+  }
+
+  /* FILTER BAR */
+  .filterbar{
+    max-width:1360px; margin:-38px auto 0 auto; padding:0 32px;
+    position:relative; z-index:5;
+  }
+  .filters{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:16px 20px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end;
+  }
+  .fgroup{display:flex; flex-direction:column; gap:6px; min-width:150px; flex:1;}
+  .fgroup label{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--muted);}
+  select{
+    appearance:none; -webkit-appearance:none;
+    border:1.5px solid var(--line); background:#FAFBFD url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="%23667085"/></svg>') no-repeat right 12px center;
+    border-radius:9px; padding:9px 32px 9px 12px; font-size:13.5px; font-weight:600; color:var(--ink);
+    cursor:pointer; transition:.15s border-color;
+    font-family:'Manrope',sans-serif;
+  }
+  select:hover{border-color:#C7CEDB;}
+  select:focus{outline:2px solid var(--indigo); outline-offset:1px; border-color:var(--indigo);}
+  .reset-btn{
+    background:var(--navy); color:#fff; border:none; border-radius:9px;
+    padding:10px 18px; font-size:13px; font-weight:700; cursor:pointer;
+    transition:.15s transform, .15s background;
+    white-space:nowrap;
+  }
+  .reset-btn:hover{background:#1A2740; transform:translateY(-1px);}
+  .reset-btn:active{transform:translateY(0);}
+
+  /* LAYOUT */
+  .wrap{max-width:1360px; margin:0 auto; padding:22px 32px 50px 32px;}
+
+  .kpi-row{display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:20px;}
+  .kpi{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:18px 18px 16px 18px; box-shadow:var(--shadow); position:relative; overflow:hidden;
+  }
+  .kpi .accent{position:absolute; left:0; top:0; bottom:0; width:4px;}
+  .kpi-label{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:8px;}
+  .kpi-value{font-size:23px; font-weight:800; letter-spacing:-.01em; color:var(--ink); font-family:'DM Mono',monospace;}
+  .kpi-sub{font-size:11.5px; color:var(--muted); margin-top:5px;}
+  .kpi-sub.up{color:var(--green); font-weight:700;}
+
+  .grid2{display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px;}
+  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px;}
+  .grid-tables{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+
+  .panel{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    box-shadow:var(--shadow); padding:20px 20px 14px 20px;
+  }
+  .panel h3{margin:0 0 2px 0; font-size:15px; font-weight:800;}
+  .panel .desc{font-size:12px; color:var(--muted); margin-bottom:14px;}
+  .chart-box{position:relative; height:280px;}
+  .chart-box.tall{height:340px;}
+  .chart-box.short{height:220px;}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  thead th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--muted); font-weight:700; padding:8px 6px; border-bottom:1.5px solid var(--line);
+  }
+  tbody td{padding:9px 6px; border-bottom:1px solid #F0F2F6; font-weight:600;}
+  tbody tr:hover{background:#FAFBFD;}
+  .rank{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:20px; height:20px; border-radius:6px; background:#EEF0F7; color:var(--muted);
+    font-size:10.5px; font-weight:800; margin-right:8px;
+  }
+  .bar-cell{background:#EEF1F8; border-radius:5px; height:6px; margin-top:5px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:5px; background:linear-gradient(90deg, var(--indigo), var(--teal));}
+  .amt{font-family:'DM Mono',monospace; color:var(--ink); font-weight:700;}
+  .tag{
+    display:inline-block; padding:2px 8px; border-radius:20px; font-size:10.5px; font-weight:700;
+  }
+  .tag.Fashion{background:#FCE4EE; color:#C21A63;}
+  .tag.Electronic{background:#E7E7FD; color:#3F3FC9;}
+  .tag.Decor{background:#FDF0DC; color:#B4740E;}
+
+  .empty-state{padding:40px 0; text-align:center; color:var(--muted); font-size:13px;}
+
+  footer{text-align:center; color:var(--muted); font-size:11.5px; padding:10px 0 30px 0;}
+
+  @media (max-width:1100px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .grid2, .grid3, .grid-tables{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <p class="eyebrow">FY Overview &middot; Jan – Dec</p>
+      <h1>Sales Performance Dashboard</h1>
+      <p class="sub">Live view across <b id="hdrTxCount">–</b> transactions &middot; <b id="hdrRegionCount">–</b> regions &middot; <b id="hdrStateCount">–</b> states</p>
+    </div>
+    <div class="badge">Updated with filters applied in real time</div>
+  </div>
+</div>
+
+<div class="filterbar">
+  <div class="filters">
+    <div class="fgroup">
+      <label for="fRegion">Region</label>
+      <select id="fRegion"><option value="">All Regions</option></select>
+    </div>
+    <div class="fgroup">
+      <label for="fState">State</label>
+      <select id="fState"><option value="">All States</option></select>
+    </div>
+    <div class="fgroup">
+      <label for="fCategory">Category</label>
+      <select id="fCategory"><option value="">All Categories</option></select>
+    </div>
+    <div class="fgroup">
+      <label for="fMonth">Month</label>
+      <select id="fMonth"><option value="">All Months</option></select>
+    </div>
+    <div class="fgroup">
+      <label for="fGender">Gender</label>
+      <select id="fGender"><option value="">All</option></select>
+    </div>
+    <button class="reset-btn" id="resetBtn">Reset filters</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi"><div class="accent" style="background:var(--indigo)"></div>
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value" id="kpiRevenue">–</div>
+      <div class="kpi-sub" id="kpiRevenueSub">&nbsp;</div>
+    </div>
+    <div class="kpi"><div class="accent" style="background:var(--teal)"></div>
+      <div class="kpi-label">Total Orders</div>
+      <div class="kpi-value" id="kpiOrders">–</div>
+      <div class="kpi-sub" id="kpiOrdersSub">&nbsp;</div>
+    </div>
+    <div class="kpi"><div class="accent" style="background:var(--amber)"></div>
+      <div class="kpi-label">Units Sold</div>
+      <div class="kpi-value" id="kpiUnits">–</div>
+      <div class="kpi-sub" id="kpiUnitsSub">&nbsp;</div>
+    </div>
+    <div class="kpi"><div class="accent" style="background:var(--rose)"></div>
+      <div class="kpi-label">Avg Order Value</div>
+      <div class="kpi-value" id="kpiAOV">–</div>
+      <div class="kpi-sub" id="kpiAOVSub">&nbsp;</div>
+    </div>
+    <div class="kpi"><div class="accent" style="background:var(--green)"></div>
+      <div class="kpi-label">Top Region</div>
+      <div class="kpi-value" id="kpiTopRegion" style="font-size:19px;">–</div>
+      <div class="kpi-sub" id="kpiTopRegionSub">&nbsp;</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h3>Monthly Revenue Trend</h3>
+      <div class="desc">Revenue and order volume across the fiscal year</div>
+      <div class="chart-box tall"><canvas id="chartTrend"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Revenue by Category</h3>
+      <div class="desc">Share of total revenue per product category</div>
+      <div class="chart-box tall"><canvas id="chartCategory"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h3>Region-wise Revenue</h3>
+      <div class="desc">Total revenue generated per region</div>
+      <div class="chart-box"><canvas id="chartRegion"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Revenue Split by Gender</h3>
+      <div class="desc">Customer gender distribution by revenue</div>
+      <div class="chart-box"><canvas id="chartGender"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:16px;">
+    <h3>State-wise Revenue</h3>
+    <div class="desc">Top performing states by total revenue</div>
+    <div class="chart-box" style="height:320px;"><canvas id="chartState"></canvas></div>
+  </div>
+
+  <div class="grid-tables">
+    <div class="panel">
+      <h3>Top Products</h3>
+      <div class="desc">Ranked by total revenue generated</div>
+      <table>
+        <thead><tr><th>Product</th><th>Category</th><th style="text-align:right;">Revenue</th></tr></thead>
+        <tbody id="tblProducts"></tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h3>Top Accounts</h3>
+      <div class="desc">Ranked by total revenue generated</div>
+      <table>
+        <thead><tr><th>Account</th><th>Region</th><th style="text-align:right;">Revenue</th></tr></thead>
+        <tbody id="tblAccounts"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<footer>Sales Performance Dashboard &middot; Generated from Raw Data &middot; Values in ₹ (INR)</footer>
+
+<script>
+const RAW = [{"n":"Apex Solutions","m":"January","c":"Fashion","p":"Women dress","r":"West","ci":"Ahmedabad","s":"Gujarat","g":"Male","q":9084,"rt":610,"a":5541240},{"n":"Bharat Innovations","m":"January","c":"Electronic","p":"Speaker","r":"North","ci":"Delhi","s":"Delhi","g":"Male","q":4292,"rt":783,"a":3360636},{"n":"Classic Heritage Crafts","m":"January","c":"Fashion","p":"Saree","r":"West","ci":"Vadodara","s":"Gujarat","g":"Male","q":6892,"rt":643,"a":4431556},{"n":"Crystal Waters Resort","m":"January","c":"Fashion","p":"Saree","r":"North (Union Territory)","ci":"Chandigarh","s":"Chandigarh","g":"Female","q":9102,"rt":894,"a":8137188},{"n":"Echo Real Estate","m":"January","c":"Fashion","p":"Suit","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Male","q":2966,"rt":977,"a":2897782},{"n":"Eternal Traditions","m":"January","c":"Fashion","p":"Women dress","r":"South","ci":"Hyderabad","s":"Telangana","g":"Male","q":4261,"rt":954,"a":4064994},{"n":"Excellence Tutors","m":"January","c":"Fashion","p":"Saree","r":"Central","ci":"Bhopal","s":"Madhya Pradesh","g":"Female","q":3887,"rt":912,"a":3544944},{"n":"Future Vision Tech","m":"January","c":"Fashion","p":"Suit","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Male","q":5491,"rt":601,"a":3300091},{"n":"Golden Horizon Ventures","m":"January","c":"Fashion","p":"Women dress","r":"South","ci":"Bengaluru","s":"Karnataka","g":"Male","q":4607,"rt":813,"a":3745491},{"n":"Green Leaf Enterprises","m":"January","c":"Electronic","p":"Earbuds","r":"West","ci":"Mumbai","s":"Maharashtra","g":"Male","q":8037,"rt":578,"a":4645386},{"n":"Harmony Foods","m":"January","c":"Fashion","p":"Women dress","r":"West","ci":"Pune","s":"Maharashtra","g":"Male","q":6694,"rt":742,"a":4966948},{"n":"Horizon Builders","m":"January","c":"Fashion","p":"Saree","r":"South","ci":"Visakhapatnam","s":"Andhra Pradesh","g":"Male","q":9519,"rt":970,"a":9233430},{"n":"Mystic India Exports","m":"January","c":"Electronic","p":"Earbuds","r":"South","ci":"Chennai","s":"Tamil Nadu","g":"Male","q":3941,"rt":905,"a":3566605},{"n":"Noble Nutraceuticals","m":"January","c":"Fashion","p":"Suit","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Female","q":8990,"rt":666,"a":5987340},{"n":"Pinnacle Health Products","m":"January","c":"Fashion","p":"Suit","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Female","q":2421,"rt":765,"a":1852065},{"n":"Prime Focus Media","m":"January","c":"Fashion","p":"Suit","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Male","q":6946,"rt":882,"a":6126372},{"n":"Pure Essence Skincare","m":"January","c":"Electronic","p":"Speaker","r":"North","ci":"Jaipur","s":"Rajasthan","g":"Female","q":2678,"rt":567,"a":1518426},{"n":"Supreme Travel Agency","m":"January","c":"Fashion","p":"Suit","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Male","q":5594,"rt":615,"a":3440310},{"n":"Synergy Tech Solutions","m":"January","c":"Fashion","p":"Saree","r":"East","ci":"Patna","s":"Bihar","g":"Male","q":8983,"rt":840,"a":7545720},{"n":"Urban Groove Apparel","m":"January","c":"Fashion","p":"Suit","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Male","q":7225,"rt":711,"a":5136975},{"n":"Urban Pulse Technologies","m":"January","c":"Electronic","p":"Earbuds","r":"East","ci":"Kolkata","s":"West Bengal","g":"Male","q":2415,"rt":631,"a":1523865},{"n":"Absolute Solutions","m":"February","c":"Fashion","p":"Saree","r":"West","ci":"Surat","s":"Gujarat","g":"Male","q":9392,"rt":631,"a":5926352},{"n":"Apex Auto Care","m":"February","c":"Fashion","p":"Suit","r":"South","ci":"Kochi","s":"Kerala","g":"Female","q":8893,"rt":848,"a":7541264},{"n":"Apex Travel Services","m":"February","c":"Electronic","p":"TV","r":"East","ci":"Durgapur","s":"West Bengal","g":"Male","q":3141,"rt":834,"a":2619594},{"n":"Bold Ventures","m":"February","c":"Fashion","p":"Male dress","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Male","q":9513,"rt":632,"a":6012216},{"n":"Bright Horizon Ventures","m":"February","c":"Electronic","p":"Laptop","r":"South","ci":"Hyderabad","s":"Telangana","g":"Male","q":3546,"rt":562,"a":1992852},{"n":"Brilliant Minds Academy","m":"February","c":"Fashion","p":"Male dress","r":"Central","ci":"Bhopal","s":"Madhya Pradesh","g":"Female","q":4667,"rt":646,"a":3014882},{"n":"Classic Heritage Crafts","m":"February","c":"Fashion","p":"Saree","r":"West","ci":"Vadodara","s":"Gujarat","g":"Male","q":6892,"rt":643,"a":4431556},{"n":"Crystal Clear Solutions","m":"February","c":"Electronic","p":"TV","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Female","q":3691,"rt":940,"a":3469540},{"n":"Crystal Waters Resort","m":"February","c":"Fashion","p":"Saree","r":"North (Union Territory)","ci":"Chandigarh","s":"Chandigarh","g":"Female","q":9102,"rt":894,"a":8137188},{"n":"Divine Creations","m":"February","c":"Electronic","p":"Speaker","r":"North","ci":"Kanpur","s":"Uttar Pradesh","g":"Female","q":4283,"rt":804,"a":3443532},{"n":"Dynamic Creations","m":"February","c":"Fashion","p":"Saree","r":"South","ci":"Mangalore","s":"Karnataka","g":"Male","q":5627,"rt":539,"a":3032953},{"n":"Dynamic Events Management","m":"February","c":"Fashion","p":"Saree","r":"West","ci":"Thane","s":"Maharashtra","g":"Female","q":8446,"rt":812,"a":6858152},{"n":"Echo Real Estate","m":"February","c":"Fashion","p":"Suit","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Male","q":2966,"rt":977,"a":2897782},{"n":"Elite Essence Products","m":"February","c":"Fashion","p":"Saree","r":"East","ci":"Siliguri","s":"West Bengal","g":"Male","q":1580,"rt":718,"a":1134440},{"n":"Elite Marketing Solutions","m":"February","c":"Electronic","p":"TV","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Male","q":4332,"rt":858,"a":3716856},{"n":"Emerald Estate Developers","m":"February","c":"Electronic","p":"TV","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":2907,"rt":750,"a":2180250},{"n":"Excellence Tutors","m":"February","c":"Fashion","p":"Saree","r":"Central","ci":"Bhopal","s":"Madhya Pradesh","g":"Female","q":3887,"rt":912,"a":3544944},{"n":"Future Insights Analytics","m":"February","c":"Electronic","p":"TV","r":"South","ci":"Kochi","s":"Kerala","g":"Female","q":1992,"rt":538,"a":1071696},{"n":"Future Vision Tech","m":"February","c":"Fashion","p":"Suit","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Male","q":5491,"rt":601,"a":3300091},{"n":"Global Reach Logistics","m":"February","c":"Fashion","p":"Saree","r":"West","ci":"Nagpur","s":"Maharashtra","g":"Female","q":6596,"rt":811,"a":5349356},{"n":"Global Spectrum Consulting","m":"February","c":"Decor","p":"Car accessories","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Male","q":3165,"rt":903,"a":2857995},{"n":"Golden Era Realty","m":"February","c":"Electronic","p":"TV","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":7170,"rt":521,"a":3735570},{"n":"Harmony Homes","m":"February","c":"Electronic","p":"Laptop","r":"South","ci":"Mangalore","s":"Karnataka","g":"Female","q":4168,"rt":769,"a":3205192},{"n":"Harmony Homes Realty","m":"February","c":"Decor","p":"Car accessories","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":6124,"rt":634,"a":3882616},{"n":"Heritage Crafts","m":"February","c":"Electronic","p":"TV","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Female","q":2952,"rt":972,"a":2869344},{"n":"Horizon Builders","m":"February","c":"Fashion","p":"Saree","r":"South","ci":"Visakhapatnam","s":"Andhra Pradesh","g":"Male","q":9519,"rt":970,"a":9233430},{"n":"Horizon Wellness","m":"February","c":"Decor","p":"Car accessories","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Female","q":1921,"rt":568,"a":1091128},{"n":"Infinite Solutions","m":"February","c":"Fashion","p":"Saree","r":"West","ci":"Mumbai","s":"Maharashtra","g":"Female","q":7609,"rt":636,"a":4839324},{"n":"Infinity Ventures","m":"February","c":"Electronic","p":"Laptop","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Female","q":5398,"rt":832,"a":4491136},{"n":"Legacy Designs","m":"February","c":"Electronic","p":"Laptop","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":4691,"rt":901,"a":4226591},{"n":"Metro Tech Solutions","m":"February","c":"Electronic","p":"Speaker","r":"West","ci":"Nagpur","s":"Maharashtra","g":"Female","q":4249,"rt":842,"a":3577658},{"n":"Modern Lifestyle Products","m":"February","c":"Electronic","p":"Laptop","r":"West","ci":"Ahmedabad","s":"Gujarat","g":"Male","q":9463,"rt":615,"a":5819745},{"n":"Modern Trends Fashion","m":"February","c":"Electronic","p":"TV","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Female","q":2570,"rt":704,"a":1809280},{"n":"Modern Trends Retail","m":"February","c":"Decor","p":"Car accessories","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Male","q":3687,"rt":867,"a":3196629},{"n":"Natural Bliss Beverages","m":"February","c":"Electronic","p":"TV","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Male","q":1995,"rt":897,"a":1789515},{"n":"Nexus Trading Co.","m":"February","c":"Electronic","p":"Laptop","r":"West","ci":"Pune","s":"Maharashtra","g":"Male","q":9927,"rt":631,"a":6263937},{"n":"Noble Nutraceuticals","m":"February","c":"Fashion","p":"Suit","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Female","q":8990,"rt":666,"a":5987340},{"n":"Noble Path Finance","m":"February","c":"Fashion","p":"Saree","r":"Central","ci":"Indore","s":"Madhya Pradesh","g":"Female","q":6338,"rt":540,"a":3422520},{"n":"Optimum Wellness","m":"February","c":"Electronic","p":"TV","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Male","q":3010,"rt":603,"a":1815030},{"n":"Pinnacle Health Products","m":"February","c":"Fashion","p":"Suit","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Female","q":2421,"rt":765,"a":1852065},{"n":"Pinnacle Innovations","m":"February","c":"Electronic","p":"TV","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Male","q":7291,"rt":837,"a":6102567},{"n":"Prestige Automobiles","m":"February","c":"Electronic","p":"TV","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Male","q":9633,"rt":891,"a":8583003},{"n":"Prime Focus Media","m":"February","c":"Fashion","p":"Suit","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Male","q":6946,"rt":882,"a":6126372},{"n":"Prime Tech Innovations","m":"February","c":"Electronic","p":"Laptop","r":"West","ci":"Mumbai","s":"Maharashtra","g":"Female","q":8417,"rt":918,"a":7726806},{"n":"Quantum Design Studio","m":"February","c":"Fashion","p":"Saree","r":"North","ci":"Delhi","s":"Delhi","g":"Male","q":3396,"rt":865,"a":2937540},{"n":"Quantum Finance Services","m":"February","c":"Fashion","p":"Male dress","r":"North (Union Territory)","ci":"Chandigarh","s":"Chandigarh","g":"Female","q":3669,"rt":541,"a":1984929},{"n":"Radiance Spa","m":"February","c":"Fashion","p":"Saree","r":"North","ci":"Jaipur","s":"Rajasthan","g":"Male","q":1666,"rt":714,"a":1189524},{"n":"Radiant Enterprise Solutions","m":"February","c":"Decor","p":"Car accessories","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":9156,"rt":778,"a":7123368},{"n":"Radiant Health Club","m":"February","c":"Electronic","p":"Laptop","r":"South","ci":"Bengaluru","s":"Karnataka","g":"Female","q":6807,"rt":607,"a":4131849},{"n":"Radiant Health Systems","m":"February","c":"Electronic","p":"Speaker","r":"North","ci":"Lucknow","s":"Uttar Pradesh","g":"Female","q":4171,"rt":643,"a":2681953},{"n":"Radiant Jewelry","m":"February","c":"Electronic","p":"Laptop","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Female","q":4724,"rt":951,"a":4492524},{"n":"Royal Glow Cosmetics","m":"February","c":"Fashion","p":"Suit","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":4938,"rt":726,"a":3584988},{"n":"Royal Taste Foods","m":"February","c":"Electronic","p":"Laptop","r":"East","ci":"Siliguri","s":"West Bengal","g":"Female","q":9466,"rt":933,"a":8831778},{"n":"Sacred Roots Apparel","m":"February","c":"Fashion","p":"Male dress","r":"West","ci":"Thane","s":"Maharashtra","g":"Female","q":6166,"rt":894,"a":5512404},{"n":"Sparkle Cleaners","m":"February","c":"Fashion","p":"Saree","r":"North","ci":"Kanpur","s":"Uttar Pradesh","g":"Female","q":9636,"rt":873,"a":8412228},{"n":"Starlight Media Group","m":"February","c":"Electronic","p":"TV","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":2936,"rt":558,"a":1638288},{"n":"Stellar Advertising","m":"February","c":"Decor","p":"Car accessories","r":"East","ci":"Durgapur","s":"West Bengal","g":"Female","q":6233,"rt":675,"a":4207275},{"n":"Supreme Electronics","m":"February","c":"Electronic","p":"TV","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":1784,"rt":799,"a":1425416},{"n":"Supreme Travel Agency","m":"February","c":"Fashion","p":"Suit","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Male","q":5594,"rt":615,"a":3440310},{"n":"Synergy Tech Solutions","m":"February","c":"Fashion","p":"Saree","r":"East","ci":"Patna","s":"Bihar","g":"Male","q":8983,"rt":840,"a":7545720},{"n":"True Path Logistics","m":"February","c":"Electronic","p":"Speaker","r":"Central","ci":"Indore","s":"Madhya Pradesh","g":"Female","q":1902,"rt":671,"a":1276242},{"n":"True Value Electronics","m":"February","c":"Decor","p":"Car accessories","r":"North","ci":"Amritsar","s":"Punjab","g":"Female","q":5036,"rt":745,"a":3751820},{"n":"Urban Edge Consulting","m":"February","c":"Electronic","p":"Laptop","r":"North","ci":"Delhi","s":"Delhi","g":"Female","q":5773,"rt":627,"a":3619671},{"n":"Urban Groove Apparel","m":"February","c":"Fashion","p":"Suit","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Male","q":7225,"rt":711,"a":5136975},{"n":"Verve Fitness Studio","m":"February","c":"Fashion","p":"Saree","r":"North","ci":"Lucknow","s":"Uttar Pradesh","g":"Female","q":7124,"rt":693,"a":4936932},{"n":"Virtue Enterprises","m":"February","c":"Electronic","p":"Laptop","r":"South","ci":"Chennai","s":"Tamil Nadu","g":"Female","q":5945,"rt":887,"a":5273215},{"n":"Visionary Holdings","m":"February","c":"Fashion","p":"Male dress","r":"South","ci":"Visakhapatnam","s":"Andhra Pradesh","g":"Female","q":6722,"rt":671,"a":4510462},{"n":"Visionary Tours","m":"February","c":"Fashion","p":"Suit","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":3490,"rt":889,"a":3102610},{"n":"Zenith Books Publishing","m":"February","c":"Electronic","p":"TV","r":"North","ci":"Amritsar","s":"Punjab","g":"Male","q":9118,"rt":694,"a":6327892},{"n":"Zenith Construction Co.","m":"February","c":"Electronic","p":"Speaker","r":"West","ci":"Surat","s":"Gujarat","g":"Female","q":1631,"rt":508,"a":828548},{"n":"Zenith Culinary Arts","m":"February","c":"Fashion","p":"Suit","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":4836,"rt":783,"a":3786588},{"n":"Apex Construction","m":"March","c":"Fashion","p":"Saree","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":2460,"rt":571,"a":1404660},{"n":"Apex Retailers","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Thane","s":"Maharashtra","g":"Female","q":2645,"rt":513,"a":1356885},{"n":"Apex Travel Ventures","m":"March","c":"Electronic","p":"Laptop","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Female","q":9014,"rt":687,"a":6192618},{"n":"Bright Future Academy","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Kanpur","s":"Uttar Pradesh","g":"Female","q":6995,"rt":959,"a":6708205},{"n":"Classic Trends Fashion","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"Central","ci":"Bhopal","s":"Madhya Pradesh","g":"Male","q":4067,"rt":710,"a":2887570},{"n":"Crystal Clear Beverages","m":"March","c":"Fashion","p":"Suit","r":"West","ci":"Ahmedabad","s":"Gujarat","g":"Male","q":8320,"rt":701,"a":5832320},{"n":"Crystal Innovations","m":"March","c":"Fashion","p":"Saree","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Female","q":2162,"rt":880,"a":1902560},{"n":"Elite Edge Services","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Female","q":8921,"rt":593,"a":5290153},{"n":"Future Path Technologies","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Vadodara","s":"Gujarat","g":"Male","q":1885,"rt":811,"a":1528735},{"n":"Future Trends Retail","m":"March","c":"Fashion","p":"Saree","r":"East","ci":"Siliguri","s":"West Bengal","g":"Female","q":6223,"rt":783,"a":4872609},{"n":"Harmony Tech Innovations","m":"March","c":"Fashion","p":"Saree","r":"East","ci":"Durgapur","s":"West Bengal","g":"Female","q":5344,"rt":500,"a":2672000},{"n":"Harmony Ventures","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"South","ci":"Visakhapatnam","s":"Andhra Pradesh","g":"Male","q":9519,"rt":949,"a":9033531},{"n":"Horizon Tech Solutions","m":"March","c":"Electronic","p":"Laptop","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Female","q":7181,"rt":668,"a":4796908},{"n":"Legacy Auto Works","m":"March","c":"Electronic","p":"Laptop","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Male","q":3074,"rt":869,"a":2671306},{"n":"Legacy Design Group","m":"March","c":"Fashion","p":"Saree","r":"North","ci":"Amritsar","s":"Punjab","g":"Female","q":9418,"rt":558,"a":5255244},{"n":"Legacy Innovations","m":"March","c":"Fashion","p":"Suit","r":"South","ci":"Chennai","s":"Tamil Nadu","g":"Female","q":8048,"rt":648,"a":5215104},{"n":"Metro Line Tech","m":"March","c":"Fashion","p":"Suit","r":"West","ci":"Pune","s":"Maharashtra","g":"Male","q":7085,"rt":980,"a":6943300},{"n":"Noble Heights Builders","m":"March","c":"Electronic","p":"Laptop","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":5261,"rt":626,"a":3293386},{"n":"Noble Travel Services","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Lucknow","s":"Uttar Pradesh","g":"Female","q":2540,"rt":735,"a":1866900},{"n":"Prestige Property Developers","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"North (Union Territory)","ci":"Chandigarh","s":"Chandigarh","g":"Female","q":4794,"rt":703,"a":3370182},{"n":"Prime Essence Creations","m":"March","c":"Electronic","p":"Laptop","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Male","q":6116,"rt":699,"a":4275084},{"n":"Pure Bliss Beverages","m":"March","c":"Electronic","p":"Laptop","r":"South","ci":"Kochi","s":"Kerala","g":"Female","q":6005,"rt":739,"a":4437695},{"n":"Pure Harmony Foods","m":"March","c":"Fashion","p":"Suit","r":"South","ci":"Bengaluru","s":"Karnataka","g":"Male","q":6821,"rt":871,"a":5941091},{"n":"Quantum Ventures","m":"March","c":"Electronic","p":"Laptop","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Male","q":5729,"rt":753,"a":4313937},{"n":"Radiance Health and Wellness","m":"March","c":"Electronic","p":"Laptop","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Male","q":6596,"rt":501,"a":3304596},{"n":"Radiant Foods","m":"March","c":"Electronic","p":"Laptop","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":5989,"rt":889,"a":5324221},{"n":"Radiant Vision Studios","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Surat","s":"Gujarat","g":"Female","q":4636,"rt":976,"a":4524736},{"n":"Stellar Education Services","m":"March","c":"Fashion","p":"Saree","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":7204,"rt":944,"a":6800576},{"n":"Stellar Realty","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Patna","s":"Bihar","g":"Male","q":7217,"rt":935,"a":6747895},{"n":"Supreme Wellness","m":"March","c":"Fashion","p":"Saree","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":8665,"rt":743,"a":6438095},{"n":"Synergy Solutions Group","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Nagpur","s":"Maharashtra","g":"Female","q":8442,"rt":618,"a":5217156},{"n":"Urban Legends Apparel","m":"March","c":"Electronic","p":"Laptop","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Female","q":9034,"rt":730,"a":6594820},{"n":"Urban Pulse Consulting","m":"March","c":"Fashion","p":"Suit","r":"North","ci":"Jaipur","s":"Rajasthan","g":"Male","q":7382,"rt":866,"a":6392812},{"n":"Visionary Health Products","m":"March","c":"Fashion","p":"Saree","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Female","q":5004,"rt":681,"a":3407724},{"n":"Visionary Health Systems","m":"March","c":"Decor","p":"Home d\u00e9cor","r":"Central","ci":"Indore","s":"Madhya Pradesh","g":"Female","q":8766,"rt":813,"a":7126758},{"n":"Zenith Financial Services","m":"March","c":"Electronic","p":"Laptop","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":6350,"rt":615,"a":3905250},{"n":"Zenith Security Systems","m":"March","c":"Fashion","p":"Suit","r":"South","ci":"Hyderabad","s":"Telangana","g":"Male","q":1898,"rt":726,"a":1377948},{"n":"Apex Enterprise Solutions","m":"April","c":"Electronic","p":"Laptop","r":"South","ci":"Visakhapatnam","s":"Andhra Pradesh","g":"Male","q":3782,"rt":528,"a":1996896},{"n":"Apex Wellness Solutions","m":"April","c":"Fashion","p":"Suit","r":"South","ci":"Bengaluru","s":"Karnataka","g":"Male","q":2613,"rt":910,"a":2377830},{"n":"Bright Horizon Realty","m":"April","c":"Electronic","p":"Laptop","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Female","q":5530,"rt":777,"a":4296810},{"n":"Crystal Clear Realty","m":"April","c":"Decor","p":"Home d\u00e9cor","r":"Central","ci":"Indore","s":"Madhya Pradesh","g":"Male","q":4760,"rt":578,"a":2751280},{"n":"Dynamic Design Studio","m":"April","c":"Fashion","p":"Saree","r":"South","ci":"Chennai","s":"Tamil Nadu","g":"Male","q":5268,"rt":992,"a":5225856},{"n":"Elite Spectrum Consulting","m":"April","c":"Fashion","p":"Saree","r":"East","ci":"Kolkata","s":"West Bengal","g":"Male","q":6492,"rt":714,"a":4635288},{"n":"Future Vision Realty","m":"April","c":"Electronic","p":"Laptop","r":"West","ci":"Thane","s":"Maharashtra","g":"Male","q":2605,"rt":737,"a":1919885},{"n":"Harmony Consulting Group","m":"April","c":"Electronic","p":"Laptop","r":"West","ci":"Vadodara","s":"Gujarat","g":"Male","q":4239,"rt":922,"a":3908358},{"n":"Horizon Builders & Developers","m":"April","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Jaipur","s":"Rajasthan","g":"Female","q":8044,"rt":681,"a":5477964},{"n":"Legacy Apparel","m":"April","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Lucknow","s":"Uttar Pradesh","g":"Female","q":5689,"rt":827,"a":4704803},{"n":"Modern Harmony Products","m":"April","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Pune","s":"Maharashtra","g":"Female","q":5087,"rt":555,"a":2823285},{"n":"Noble Innovations","m":"April","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Nagpur","s":"Maharashtra","g":"Male","q":1567,"rt":781,"a":1223827},{"n":"Pinnacle Education Group","m":"April","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Kanpur","s":"Uttar Pradesh","g":"Female","q":2431,"rt":556,"a":1351636},{"n":"Prestige Solutions","m":"April","c":"Electronic","p":"Laptop","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Female","q":4945,"rt":938,"a":4638410},{"n":"Prime Focus Innovations","m":"April","c":"Fashion","p":"Saree","r":"West","ci":"Mumbai","s":"Maharashtra","g":"Male","q":6176,"rt":639,"a":3946464},{"n":"Pure Path Foods","m":"April","c":"Electronic","p":"Laptop","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Female","q":1964,"rt":787,"a":1545668},{"n":"Radiance Tech Solutions","m":"April","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Surat","s":"Gujarat","g":"Female","q":4427,"rt":818,"a":3621286},{"n":"Radiant Horizon Ventures","m":"April","c":"Fashion","p":"Saree","r":"South","ci":"Mangalore","s":"Karnataka","g":"Female","q":5481,"rt":646,"a":3540726},{"n":"Radiant Vision Realty","m":"April","c":"Electronic","p":"Laptop","r":"East","ci":"Patna","s":"Bihar","g":"Male","q":2743,"rt":575,"a":1577225},{"n":"Royal Crest Foods","m":"April","c":"Fashion","p":"Suit","r":"South","ci":"Hyderabad","s":"Telangana","g":"Female","q":3530,"rt":693,"a":2446290},{"n":"Stellar Health Services","m":"April","c":"Electronic","p":"Laptop","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Female","q":3400,"rt":948,"a":3223200},{"n":"True Essence Health","m":"April","c":"Electronic","p":"Laptop","r":"Central","ci":"Bhopal","s":"Madhya Pradesh","g":"Female","q":5487,"rt":879,"a":4823073},{"n":"Urban Edge Realty","m":"April","c":"Fashion","p":"Saree","r":"North","ci":"Delhi","s":"Delhi","g":"Male","q":7362,"rt":848,"a":6242976},{"n":"Urban Pulse Media","m":"April","c":"Electronic","p":"Laptop","r":"North (Union Territory)","ci":"Chandigarh","s":"Chandigarh","g":"Male","q":8431,"rt":507,"a":4274517},{"n":"Zenith Tech Ventures","m":"April","c":"Electronic","p":"Laptop","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Male","q":7544,"rt":593,"a":4473592},{"n":"Zenith Travels","m":"April","c":"Fashion","p":"Suit","r":"West","ci":"Ahmedabad","s":"Gujarat","g":"Female","q":6376,"rt":909,"a":5795784},{"n":"Apex Publishing House","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Delhi","s":"Delhi","g":"Male","q":1918,"rt":866,"a":1660988},{"n":"Apex Realty Services","m":"May","c":"Fashion","p":"Suit","r":"Central","ci":"Indore","s":"Madhya Pradesh","g":"Male","q":4543,"rt":785,"a":3566255},{"n":"Apex Spa & Wellness","m":"May","c":"Fashion","p":"Saree","r":"South","ci":"Kochi","s":"Kerala","g":"Female","q":4121,"rt":904,"a":3725384},{"n":"Crystal Essence Beverages","m":"May","c":"Fashion","p":"Suit","r":"East","ci":"Kolkata","s":"West Bengal","g":"Male","q":5137,"rt":690,"a":3544530},{"n":"Crystal Health Solutions","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Kanpur","s":"Uttar Pradesh","g":"Male","q":7493,"rt":704,"a":5275072},{"n":"Dynamic Pathways","m":"May","c":"Fashion","p":"Suit","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Female","q":5813,"rt":673,"a":3912149},{"n":"Elite Edge Consulting","m":"May","c":"Decor","p":"Car accessories","r":"West","ci":"Vadodara","s":"Gujarat","g":"Male","q":4799,"rt":769,"a":3690431},{"n":"Elite Enterprises","m":"May","c":"Fashion","p":"Saree","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Male","q":3876,"rt":861,"a":3337236},{"n":"Elite Media Group","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Pune","s":"Maharashtra","g":"Female","q":7125,"rt":720,"a":5130000},{"n":"Future Path Ventures","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Kolkata","s":"West Bengal","g":"Male","q":8066,"rt":985,"a":7945010},{"n":"Global Horizon Ventures","m":"May","c":"Fashion","p":"Saree","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":9981,"rt":833,"a":8314173},{"n":"Harmony Innovations","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"South","ci":"Hyderabad","s":"Telangana","g":"Female","q":7543,"rt":815,"a":6147545},{"n":"Harmony Tech Ventures","m":"May","c":"Decor","p":"Car accessories","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Female","q":9290,"rt":602,"a":5592580},{"n":"Horizon Fashion","m":"May","c":"Fashion","p":"Suit","r":"East","ci":"Durgapur","s":"West Bengal","g":"Male","q":7588,"rt":607,"a":4605916},{"n":"Horizon Tech Ventures","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Lucknow","s":"Uttar Pradesh","g":"Female","q":6742,"rt":544,"a":3667648},{"n":"Legacy Builders","m":"May","c":"Fashion","p":"Saree","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Female","q":9354,"rt":899,"a":8409246},{"n":"Legacy Health Systems","m":"May","c":"Fashion","p":"Suit","r":"South","ci":"Visakhapatnam","s":"Andhra Pradesh","g":"Male","q":2734,"rt":530,"a":1449020},{"n":"Legacy Travel Agency","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"South","ci":"Bengaluru","s":"Karnataka","g":"Female","q":5555,"rt":506,"a":2810830},{"n":"Modern Horizons Consulting","m":"May","c":"Fashion","p":"Suit","r":"West","ci":"Nagpur","s":"Maharashtra","g":"Male","q":2130,"rt":800,"a":1704000},{"n":"Modern Trends Consulting","m":"May","c":"Fashion","p":"Saree","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":2904,"rt":997,"a":2895288},{"n":"Pinnacle Finance","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Surat","s":"Gujarat","g":"Female","q":6571,"rt":799,"a":5250229},{"n":"Pinnacle Health Innovations","m":"May","c":"Fashion","p":"Saree","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Male","q":3673,"rt":619,"a":2273587},{"n":"Pure Essence Solutions","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Ahmedabad","s":"Gujarat","g":"Female","q":7725,"rt":964,"a":7446900},{"n":"Pure Harmony Solutions","m":"May","c":"Decor","p":"Car accessories","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Female","q":9736,"rt":555,"a":5403480},{"n":"Quantum Media Group","m":"May","c":"Fashion","p":"Saree","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Female","q":4862,"rt":954,"a":4638348},{"n":"Radiance Apparel","m":"May","c":"Fashion","p":"Suit","r":"East","ci":"Siliguri","s":"West Bengal","g":"Female","q":8139,"rt":655,"a":5331045},{"n":"Radiance Media","m":"May","c":"Fashion","p":"Suit","r":"Central","ci":"Bhopal","s":"Madhya Pradesh","g":"Male","q":8028,"rt":949,"a":7618572},{"n":"Radiant Construction","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Jaipur","s":"Rajasthan","g":"Female","q":1784,"rt":820,"a":1462880},{"n":"Radiant Fitness Studio","m":"May","c":"Decor","p":"Car accessories","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Female","q":9499,"rt":502,"a":4768498},{"n":"Radiant Travel Services","m":"May","c":"Fashion","p":"Saree","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":9914,"rt":615,"a":6097110},{"n":"Stellar Tech Services","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"South","ci":"Chennai","s":"Tamil Nadu","g":"Male","q":5931,"rt":652,"a":3867012},{"n":"Stellar Travel Solutions","m":"May","c":"Decor","p":"Car accessories","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Female","q":4448,"rt":924,"a":4109952},{"n":"True Path Ventures","m":"May","c":"Fashion","p":"Suit","r":"North (Union Territory)","ci":"Chandigarh","s":"Chandigarh","g":"Female","q":6210,"rt":638,"a":3961980},{"n":"True Value Consulting","m":"May","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Mumbai","s":"Maharashtra","g":"Male","q":7692,"rt":958,"a":7368936},{"n":"Urban Focus Products","m":"May","c":"Fashion","p":"Suit","r":"East","ci":"Patna","s":"Bihar","g":"Male","q":2144,"rt":505,"a":1082720},{"n":"Urban Wave Solutions","m":"May","c":"Fashion","p":"Saree","r":"North","ci":"Amritsar","s":"Punjab","g":"Male","q":8887,"rt":717,"a":6371979},{"n":"Visionary Realty Solutions","m":"May","c":"Fashion","p":"Suit","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Female","q":7330,"rt":599,"a":4390670},{"n":"Zenith Design Group","m":"May","c":"Fashion","p":"Suit","r":"South","ci":"Mangalore","s":"Karnataka","g":"Male","q":8203,"rt":918,"a":7530354},{"n":"Zenith Educational Group","m":"May","c":"Fashion","p":"Suit","r":"West","ci":"Thane","s":"Maharashtra","g":"Male","q":6128,"rt":944,"a":5784832},{"n":"Apex Creative Solutions","m":"June","c":"Fashion","p":"Suit","r":"East","ci":"Kolkata","s":"West Bengal","g":"Male","q":3944,"rt":813,"a":3206472},{"n":"Apex Events Management","m":"June","c":"Decor","p":"Car accessories","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Female","q":2084,"rt":796,"a":1658864},{"n":"Apex Health Products","m":"June","c":"Electronic","p":"Speaker","r":"East","ci":"Durgapur","s":"West Bengal","g":"Female","q":4761,"rt":819,"a":3899259},{"n":"Apex Marketing Solutions","m":"June","c":"Electronic","p":"Earbuds","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Male","q":3703,"rt":568,"a":2103304},{"n":"Crystal Clear Consulting","m":"June","c":"Electronic","p":"Earbuds","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Female","q":7389,"rt":997,"a":7366833},{"n":"Crystal Horizons","m":"June","c":"Fashion","p":"Suit","r":"North","ci":"Amritsar","s":"Punjab","g":"Female","q":5112,"rt":787,"a":4023144},{"n":"Elite Spectrum Media","m":"June","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Female","q":5928,"rt":512,"a":3035136},{"n":"Harmony Finance Co.","m":"June","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Siliguri","s":"West Bengal","g":"Male","q":1791,"rt":542,"a":970722},{"n":"Harmony Ventures Co.","m":"June","c":"Fashion","p":"Women dress","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":4296,"rt":960,"a":4124160},{"n":"Horizon Design Studio","m":"June","c":"Fashion","p":"Saree","r":"South","ci":"Kochi","s":"Kerala","g":"Female","q":8113,"rt":944,"a":7658672},{"n":"Horizon Health Solutions","m":"June","c":"Electronic","p":"Speaker","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Female","q":2428,"rt":662,"a":1607336},{"n":"Legacy Design Co.","m":"June","c":"Electronic","p":"Speaker","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Male","q":7070,"rt":896,"a":6334720},{"n":"Legacy Tech Products","m":"June","c":"Fashion","p":"Saree","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":7358,"rt":993,"a":7306494},{"n":"Legacy Travel Services","m":"June","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Vadodara","s":"Gujarat","g":"Female","q":5636,"rt":565,"a":3184340},{"n":"Modern Edge Solutions","m":"June","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Female","q":9498,"rt":570,"a":5413860},{"n":"Modern Spectrum Solutions","m":"June","c":"Fashion","p":"Saree","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":4722,"rt":609,"a":2875698},{"n":"Pinnacle Design Studio","m":"June","c":"Decor","p":"Home d\u00e9cor","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Female","q":9558,"rt":617,"a":5897286},{"n":"Pinnacle Media Group","m":"June","c":"Electronic","p":"Speaker","r":"North","ci":"Amritsar","s":"Punjab","g":"Male","q":5511,"rt":832,"a":4585152},{"n":"Pinnacle Wellness Services","m":"June","c":"Fashion","p":"Saree","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":2970,"rt":725,"a":2153250},{"n":"Pure Vision Ventures","m":"June","c":"Decor","p":"Home d\u00e9cor","r":"South","ci":"Mangalore","s":"Karnataka","g":"Male","q":4740,"rt":578,"a":2739720},{"n":"Radiance Solutions Group","m":"June","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Patna","s":"Bihar","g":"Female","q":2665,"rt":895,"a":2385175},{"n":"Radiant Apparel","m":"June","c":"Fashion","p":"Suit","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":6357,"rt":935,"a":5943795},{"n":"Radiant Consulting Group","m":"June","c":"Fashion","p":"Women dress","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Male","q":2440,"rt":815,"a":1988600},{"n":"Stellar Media Group","m":"June","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Male","q":3074,"rt":507,"a":1558518},{"n":"Stellar Wellness Products","m":"June","c":"Fashion","p":"Women dress","r":"South","ci":"Kochi","s":"Kerala","g":"Male","q":7380,"rt":794,"a":5859720},{"n":"True Essence Innovations","m":"June","c":"Electronic","p":"Speaker","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Male","q":6331,"rt":573,"a":3627663},{"n":"True Value Products","m":"June","c":"Fashion","p":"Suit","r":"East","ci":"Durgapur","s":"West Bengal","g":"Female","q":4535,"rt":634,"a":2875190},{"n":"Urban Insight Consulting","m":"June","c":"Fashion","p":"Suit","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Female","q":1939,"rt":537,"a":1041243},{"n":"Urban Path Technologies","m":"June","c":"Fashion","p":"Women dress","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Male","q":9072,"rt":735,"a":6667920},{"n":"Visionary Innovations","m":"June","c":"Fashion","p":"Saree","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Female","q":4280,"rt":942,"a":4031760},{"n":"Zenith Finance Co.","m":"June","c":"Decor","p":"Car accessories","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Female","q":4981,"rt":743,"a":3700883},{"n":"Zenith Health Products","m":"June","c":"Fashion","p":"Suit","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Male","q":2920,"rt":859,"a":2508280},{"n":"Zenith Innovations","m":"June","c":"Electronic","p":"Earbuds","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Male","q":6133,"rt":505,"a":3097165},{"n":"Zenith Travel Ventures","m":"June","c":"Electronic","p":"Speaker","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":8127,"rt":956,"a":7769412},{"n":"Apex Realty Ventures","m":"July","c":"Electronic","p":"TV","r":"North","ci":"Jaipur","s":"Rajasthan","g":"Male","q":9045,"rt":544,"a":4920480},{"n":"Apex Travel Ventures","m":"July","c":"Fashion","p":"Saree","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Male","q":2085,"rt":595,"a":1240575},{"n":"Apex Wellness Products","m":"July","c":"Electronic","p":"Laptop","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Female","q":3910,"rt":521,"a":2037110},{"n":"Crystal Clear Designs","m":"July","c":"Electronic","p":"TV","r":"West","ci":"Nagpur","s":"Maharashtra","g":"Male","q":5152,"rt":760,"a":3915520},{"n":"Crystal Innovations Group","m":"July","c":"Fashion","p":"Male dress","r":"West","ci":"Mumbai","s":"Maharashtra","g":"Female","q":8613,"rt":796,"a":6855948},{"n":"Crystal Spectrum Consulting","m":"July","c":"Electronic","p":"Laptop","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Male","q":4560,"rt":779,"a":3552240},{"n":"Elite Edge Products","m":"July","c":"Electronic","p":"TV","r":"East","ci":"Patna","s":"Bihar","g":"Female","q":3372,"rt":533,"a":1797276},{"n":"Elite Travel Services","m":"July","c":"Fashion","p":"Male dress","r":"South","ci":"Mangalore","s":"Karnataka","g":"Female","q":5142,"rt":514,"a":2642988},{"n":"Harmony Design Ventures","m":"July","c":"Electronic","p":"TV","r":"South","ci":"Visakhapatnam","s":"Andhra Pradesh","g":"Female","q":6384,"rt":575,"a":3670800},{"n":"Harmony Educational Group","m":"July","c":"Electronic","p":"TV","r":"South","ci":"Bengaluru","s":"Karnataka","g":"Male","q":1882,"rt":560,"a":1053920},{"n":"Harmony Health Solutions","m":"July","c":"Electronic","p":"Laptop","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Male","q":4721,"rt":620,"a":2927020},{"n":"Harmony Marketing Co.","m":"July","c":"Fashion","p":"Saree","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Female","q":7991,"rt":910,"a":7271810},{"n":"Horizon Creative Solutions","m":"July","c":"Fashion","p":"Male dress","r":"North","ci":"Delhi","s":"Delhi","g":"Female","q":6102,"rt":990,"a":6040980},{"n":"Horizon Media Solutions","m":"July","c":"Electronic","p":"TV","r":"North","ci":"Kanpur","s":"Uttar Pradesh","g":"Female","q":6566,"rt":674,"a":4425484},{"n":"Horizon Tech Innovations","m":"July","c":"Electronic","p":"Laptop","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Male","q":6120,"rt":647,"a":3959640},{"n":"Legacy Finance Group","m":"July","c":"Fashion","p":"Saree","r":"East","ci":"Durgapur","s":"West Bengal","g":"Female","q":6681,"rt":886,"a":5919366},{"n":"Legacy Media Group","m":"July","c":"Electronic","p":"Laptop","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Female","q":5367,"rt":606,"a":3252402},{"n":"Legacy Wellness Solutions","m":"July","c":"Electronic","p":"TV","r":"West","ci":"Surat","s":"Gujarat","g":"Female","q":2088,"rt":678,"a":1415664},{"n":"Modern Pathways","m":"July","c":"Electronic","p":"TV","r":"West","ci":"Thane","s":"Maharashtra","g":"Male","q":7249,"rt":645,"a":4675605},{"n":"Modern Vision Solutions","m":"July","c":"Fashion","p":"Saree","r":"North","ci":"Amritsar","s":"Punjab","g":"Male","q":2616,"rt":652,"a":1705632},{"n":"Modern Vision Ventures","m":"July","c":"Fashion","p":"Male dress","r":"East","ci":"Siliguri","s":"West Bengal","g":"Female","q":1929,"rt":567,"a":1093743},{"n":"Pinnacle Design Ventures","m":"July","c":"Fashion","p":"Saree","r":"West","ci":"Vadodara","s":"Gujarat","g":"Female","q":8243,"rt":630,"a":5193090},{"n":"Pinnacle Fitness Studio","m":"July","c":"Fashion","p":"Male dress","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":1735,"rt":717,"a":1243995},{"n":"Pinnacle Innovations Co.","m":"July","c":"Electronic","p":"TV","r":"Central","ci":"Indore","s":"Madhya Pradesh","g":"Male","q":2714,"rt":607,"a":1647398},{"n":"Pinnacle Travel Solutions","m":"July","c":"Electronic","p":"Laptop","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Male","q":5733,"rt":582,"a":3336606},{"n":"Pure Harmony Innovations","m":"July","c":"Electronic","p":"Laptop","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Female","q":8891,"rt":500,"a":4445500},{"n":"Pure Path Consulting","m":"July","c":"Electronic","p":"Speaker","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Female","q":7794,"rt":527,"a":4107438},{"n":"Radiance Media Ventures","m":"July","c":"Electronic","p":"Laptop","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":4940,"rt":517,"a":2553980},{"n":"Radiance Solutions Co.","m":"July","c":"Fashion","p":"Male dress","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Female","q":7427,"rt":604,"a":4485908},{"n":"Radiant Design Studio","m":"July","c":"Electronic","p":"TV","r":"West","ci":"Ahmedabad","s":"Gujarat","g":"Male","q":2105,"rt":981,"a":2065005},{"n":"Radiant Educational Solutions","m":"July","c":"Fashion","p":"Saree","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Female","q":1974,"rt":575,"a":1135050},{"n":"Radiant Spectrum Group","m":"July","c":"Electronic","p":"TV","r":"Central","ci":"Bhopal","s":"Madhya Pradesh","g":"Male","q":6728,"rt":701,"a":4716328},{"n":"Stellar Creative Co.","m":"July","c":"Electronic","p":"Laptop","r":"South","ci":"Kochi","s":"Kerala","g":"Male","q":7880,"rt":814,"a":6414320},{"n":"Stellar Finance Co.","m":"July","c":"Electronic","p":"TV","r":"North (Union Territory)","ci":"Chandigarh","s":"Chandigarh","g":"Male","q":7924,"rt":855,"a":6775020},{"n":"Stellar Innovations Co.","m":"July","c":"Fashion","p":"Saree","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Female","q":9739,"rt":947,"a":9222833},{"n":"Stellar Travel Agency","m":"July","c":"Fashion","p":"Male dress","r":"South","ci":"Chennai","s":"Tamil Nadu","g":"Female","q":4013,"rt":818,"a":3282634},{"n":"True Path Consulting","m":"July","c":"Fashion","p":"Saree","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":6023,"rt":707,"a":4258261},{"n":"True Value Ventures","m":"July","c":"Electronic","p":"TV","r":"North","ci":"Lucknow","s":"Uttar Pradesh","g":"Female","q":3793,"rt":657,"a":2492001},{"n":"Urban Spectrum Solutions","m":"July","c":"Electronic","p":"TV","r":"South","ci":"Hyderabad","s":"Telangana","g":"Male","q":3794,"rt":734,"a":2784796},{"n":"Urban Vision Solutions","m":"July","c":"Electronic","p":"Laptop","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Female","q":9238,"rt":630,"a":5819940},{"n":"Zenith Consulting Co.","m":"July","c":"Electronic","p":"Laptop","r":"West","ci":"Vadodara","s":"Gujarat","g":"Female","q":1817,"rt":615,"a":1117455},{"n":"Zenith Edge Services","m":"July","c":"Electronic","p":"Laptop","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Male","q":2837,"rt":831,"a":2357547},{"n":"Zenith Health Innovations","m":"July","c":"Electronic","p":"TV","r":"West","ci":"Pune","s":"Maharashtra","g":"Male","q":7654,"rt":881,"a":6743174},{"n":"Apex Finance Ventures","m":"August","c":"Fashion","p":"Suit","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":6839,"rt":909,"a":6216651},{"n":"Apex Innovations Co.","m":"August","c":"Fashion","p":"Suit","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Male","q":7995,"rt":910,"a":7275450},{"n":"Apex Media Co.","m":"August","c":"Fashion","p":"Saree","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Female","q":7168,"rt":642,"a":4601856},{"n":"Apex Travel Innovations","m":"August","c":"Fashion","p":"Saree","r":"West","ci":"Vadodara","s":"Gujarat","g":"Male","q":7823,"rt":833,"a":6516559},{"n":"Crystal Path Consulting","m":"August","c":"Fashion","p":"Suit","r":"East","ci":"Durgapur","s":"West Bengal","g":"Male","q":3649,"rt":503,"a":1835447},{"n":"Crystal Wellness Group","m":"August","c":"Fashion","p":"Saree","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Female","q":3251,"rt":720,"a":2340720},{"n":"Elite Creative Solutions","m":"August","c":"Decor","p":"Car accessories","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":7071,"rt":778,"a":5501238},{"n":"Harmony Consulting Group","m":"August","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":7694,"rt":907,"a":6978458},{"n":"Harmony Edge Solutions","m":"August","c":"Fashion","p":"Suit","r":"North","ci":"Amritsar","s":"Punjab","g":"Male","q":1663,"rt":659,"a":1095917},{"n":"Harmony Finance Group","m":"August","c":"Fashion","p":"Saree","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Male","q":8910,"rt":529,"a":4713390},{"n":"Horizon Path Ventures","m":"August","c":"Fashion","p":"Suit","r":"South","ci":"Kochi","s":"Kerala","g":"Female","q":2005,"rt":748,"a":1499740},{"n":"Horizon Ventures Co.","m":"August","c":"Decor","p":"Car accessories","r":"North","ci":"Amritsar","s":"Punjab","g":"Female","q":1696,"rt":868,"a":1472128},{"n":"Legacy Health Ventures","m":"August","c":"Fashion","p":"Suit","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":3099,"rt":601,"a":1862499},{"n":"Legacy Spectrum Co.","m":"August","c":"Fashion","p":"Saree","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Male","q":7046,"rt":576,"a":4058496},{"n":"Legacy Travel Co.","m":"August","c":"Decor","p":"Home d\u00e9cor","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Female","q":8143,"rt":786,"a":6400398},{"n":"Legacy Travel Ventures","m":"August","c":"Decor","p":"Car accessories","r":"East","ci":"Siliguri","s":"West Bengal","g":"Female","q":7710,"rt":954,"a":7355340},{"n":"Modern Health Products","m":"August","c":"Fashion","p":"Saree","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Male","q":7275,"rt":776,"a":5645400},{"n":"Modern Travel Agency","m":"August","c":"Fashion","p":"Suit","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Male","q":9541,"rt":984,"a":9388344},{"n":"Pinnacle Design Solutions","m":"August","c":"Fashion","p":"Suit","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Male","q":9395,"rt":922,"a":8662190},{"n":"Pinnacle Innovations Group","m":"August","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Amritsar","s":"Punjab","g":"Female","q":8069,"rt":553,"a":4462157},{"n":"Pinnacle Media Solutions","m":"August","c":"Decor","p":"Car accessories","r":"South","ci":"Mangalore","s":"Karnataka","g":"Female","q":3333,"rt":945,"a":3149685},{"n":"Pinnacle Spectrum Co.","m":"August","c":"Fashion","p":"Suit","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":2916,"rt":767,"a":2236572},{"n":"Pure Harmony Health","m":"August","c":"Fashion","p":"Suit","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Female","q":5228,"rt":781,"a":4083068},{"n":"Pure Harmony Solutions","m":"August","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":8854,"rt":944,"a":8358176},{"n":"Pure Vision Consulting","m":"August","c":"Fashion","p":"Saree","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Female","q":2683,"rt":705,"a":1891515},{"n":"Pure Vision Solutions","m":"August","c":"Fashion","p":"Suit","r":"South","ci":"Kochi","s":"Kerala","g":"Female","q":8503,"rt":591,"a":5025273},{"n":"Radiance Design Co.","m":"August","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Durgapur","s":"West Bengal","g":"Female","q":2576,"rt":987,"a":2542512},{"n":"Radiance Finance Services","m":"August","c":"Fashion","p":"Suit","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Female","q":4048,"rt":713,"a":2886224},{"n":"Radiant Innovations Group","m":"August","c":"Fashion","p":"Suit","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Male","q":9909,"rt":657,"a":6510213},{"n":"Radiant Tech Solutions","m":"August","c":"Decor","p":"Car accessories","r":"West","ci":"Mumbai","s":"Maharashtra","g":"Female","q":4277,"rt":857,"a":3665389},{"n":"Stellar Design Group","m":"August","c":"Decor","p":"Car accessories","r":"North","ci":"Delhi","s":"Delhi","g":"Female","q":9277,"rt":839,"a":7783403},{"n":"Stellar Health Services","m":"August","c":"Decor","p":"Home d\u00e9cor","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":2268,"rt":911,"a":2066148},{"n":"Stellar Media Services","m":"August","c":"Fashion","p":"Suit","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Male","q":5242,"rt":838,"a":4392796},{"n":"Stellar Travel Products","m":"August","c":"Fashion","p":"Suit","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":5674,"rt":975,"a":5532150},{"n":"Urban Tech Innovations","m":"August","c":"Fashion","p":"Saree","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Female","q":1888,"rt":682,"a":1287616},{"n":"Zenith Creative Solutions","m":"August","c":"Fashion","p":"Saree","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Female","q":7341,"rt":848,"a":6225168},{"n":"Zenith Educational Services","m":"August","c":"Fashion","p":"Suit","r":"East","ci":"Kolkata","s":"West Bengal","g":"Male","q":1737,"rt":571,"a":991827},{"n":"Zenith Tech Co.","m":"August","c":"Fashion","p":"Suit","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":1891,"rt":953,"a":1802123},{"n":"Zenith Wellness Services","m":"August","c":"Decor","p":"Car accessories","r":"East","ci":"Durgapur","s":"West Bengal","g":"Male","q":2536,"rt":798,"a":2023728},{"n":"Apex Construction","m":"September","c":"Fashion","p":"Saree","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":2460,"rt":571,"a":1404660},{"n":"Apex Design Services","m":"September","c":"Fashion","p":"Saree","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Female","q":5507,"rt":618,"a":3403326},{"n":"Apex Educational Group","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Male","q":5764,"rt":622,"a":3585208},{"n":"Apex Finance Group","m":"September","c":"Fashion","p":"Saree","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Male","q":6726,"rt":900,"a":6053400},{"n":"Apex Health Services","m":"September","c":"Electronic","p":"Laptop","r":"North","ci":"Amritsar","s":"Punjab","g":"Male","q":2572,"rt":777,"a":1998444},{"n":"Apex Retailers","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Thane","s":"Maharashtra","g":"Female","q":2645,"rt":513,"a":1356885},{"n":"Bright Future Academy","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Kanpur","s":"Uttar Pradesh","g":"Female","q":6995,"rt":959,"a":6708205},{"n":"Classic Trends Fashion","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"Central","ci":"Bhopal","s":"Madhya Pradesh","g":"Male","q":4067,"rt":710,"a":2887570},{"n":"Crystal Clear Beverages","m":"September","c":"Fashion","p":"Suit","r":"West","ci":"Ahmedabad","s":"Gujarat","g":"Male","q":8320,"rt":701,"a":5832320},{"n":"Dynamic Creations","m":"September","c":"Fashion","p":"Saree","r":"South","ci":"Mangalore","s":"Karnataka","g":"Male","q":5627,"rt":539,"a":3032953},{"n":"Elite Edge Services","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Female","q":8921,"rt":593,"a":5290153},{"n":"Elite Essence Products","m":"September","c":"Fashion","p":"Saree","r":"East","ci":"Siliguri","s":"West Bengal","g":"Male","q":1580,"rt":718,"a":1134440},{"n":"Future Path Technologies","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Vadodara","s":"Gujarat","g":"Male","q":1885,"rt":811,"a":1528735},{"n":"Global Spectrum Consulting","m":"September","c":"Decor","p":"Car accessories","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Male","q":3165,"rt":903,"a":2857995},{"n":"Harmony Edge Ventures","m":"September","c":"Fashion","p":"Saree","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":4848,"rt":556,"a":2695488},{"n":"Harmony Homes Realty","m":"September","c":"Decor","p":"Car accessories","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":6124,"rt":634,"a":3882616},{"n":"Harmony Tech Co.","m":"September","c":"Electronic","p":"Laptop","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":9433,"rt":540,"a":5093820},{"n":"Harmony Ventures","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"South","ci":"Visakhapatnam","s":"Andhra Pradesh","g":"Male","q":9519,"rt":949,"a":9033531},{"n":"Harmony Ventures Group","m":"September","c":"Electronic","p":"Laptop","r":"West","ci":"Vadodara","s":"Gujarat","g":"Female","q":9561,"rt":674,"a":6444114},{"n":"Horizon Tech Solutions","m":"September","c":"Electronic","p":"Laptop","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Female","q":7181,"rt":668,"a":4796908},{"n":"Infinite Solutions","m":"September","c":"Fashion","p":"Saree","r":"West","ci":"Mumbai","s":"Maharashtra","g":"Female","q":7609,"rt":636,"a":4839324},{"n":"Legacy Auto Works","m":"September","c":"Electronic","p":"Laptop","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Male","q":3074,"rt":869,"a":2671306},{"n":"Legacy Health Co.","m":"September","c":"Fashion","p":"Suit","r":"North","ci":"Amritsar","s":"Punjab","g":"Male","q":5246,"rt":653,"a":3425638},{"n":"Legacy Innovations","m":"September","c":"Fashion","p":"Suit","r":"South","ci":"Chennai","s":"Tamil Nadu","g":"Female","q":8048,"rt":648,"a":5215104},{"n":"Legacy Innovations Group","m":"September","c":"Electronic","p":"Laptop","r":"East","ci":"Durgapur","s":"West Bengal","g":"Male","q":5562,"rt":986,"a":5484132},{"n":"Legacy Media Solutions","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Male","q":9218,"rt":927,"a":8545086},{"n":"Legacy Spectrum Group","m":"September","c":"Fashion","p":"Saree","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Male","q":6821,"rt":919,"a":6268499},{"n":"Metro Line Tech","m":"September","c":"Fashion","p":"Suit","r":"West","ci":"Pune","s":"Maharashtra","g":"Male","q":7085,"rt":980,"a":6943300},{"n":"Modern Travel Solutions","m":"September","c":"Fashion","p":"Saree","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Female","q":9862,"rt":755,"a":7445810},{"n":"Modern Trends Retail","m":"September","c":"Decor","p":"Car accessories","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Male","q":3687,"rt":867,"a":3196629},{"n":"Modern Wellness Co.","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Siliguri","s":"West Bengal","g":"Male","q":9098,"rt":677,"a":6159346},{"n":"Noble Travel Services","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Lucknow","s":"Uttar Pradesh","g":"Female","q":2540,"rt":735,"a":1866900},{"n":"Pinnacle Consulting Co.","m":"September","c":"Electronic","p":"Laptop","r":"East","ci":"Kolkata","s":"West Bengal","g":"Male","q":3673,"rt":855,"a":3140415},{"n":"Pinnacle Media Ventures","m":"September","c":"Fashion","p":"Saree","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Male","q":7329,"rt":778,"a":5701962},{"n":"Pinnacle Travel Co.","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"South","ci":"Kochi","s":"Kerala","g":"Male","q":6785,"rt":751,"a":5095535},{"n":"Prestige Property Developers","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"North (Union Territory)","ci":"Chandigarh","s":"Chandigarh","g":"Female","q":4794,"rt":703,"a":3370182},{"n":"Prime Essence Creations","m":"September","c":"Electronic","p":"Laptop","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Male","q":6116,"rt":699,"a":4275084},{"n":"Pure Harmony Foods","m":"September","c":"Fashion","p":"Suit","r":"South","ci":"Bengaluru","s":"Karnataka","g":"Male","q":6821,"rt":871,"a":5941091},{"n":"Pure Harmony Media","m":"September","c":"Fashion","p":"Saree","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Male","q":5686,"rt":731,"a":4156466},{"n":"Pure Health Ventures","m":"September","c":"Fashion","p":"Saree","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Female","q":9694,"rt":829,"a":8036326},{"n":"Pure Spectrum Innovations","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Male","q":2777,"rt":986,"a":2738122},{"n":"Pure Vision Media","m":"September","c":"Electronic","p":"Laptop","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Male","q":5503,"rt":717,"a":3945651},{"n":"Quantum Design Studio","m":"September","c":"Fashion","p":"Saree","r":"North","ci":"Delhi","s":"Delhi","g":"Male","q":3396,"rt":865,"a":2937540},{"n":"Quantum Ventures","m":"September","c":"Electronic","p":"Laptop","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Male","q":5729,"rt":753,"a":4313937},{"n":"Radiance Health and Wellness","m":"September","c":"Electronic","p":"Laptop","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Male","q":6596,"rt":501,"a":3304596},{"n":"Radiant Educational Co.","m":"September","c":"Fashion","p":"Saree","r":"South","ci":"Kochi","s":"Kerala","g":"Male","q":8915,"rt":586,"a":5224190},{"n":"Radiant Enterprise Solutions","m":"September","c":"Decor","p":"Car accessories","r":"East","ci":"Kolkata","s":"West Bengal","g":"Female","q":9156,"rt":778,"a":7123368},{"n":"Radiant Solutions Co.","m":"September","c":"Electronic","p":"Laptop","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Female","q":6278,"rt":540,"a":3390120},{"n":"Radiant Ventures","m":"September","c":"Electronic","p":"Laptop","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":6082,"rt":810,"a":4926420},{"n":"Radiant Vision Studios","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Surat","s":"Gujarat","g":"Female","q":4636,"rt":976,"a":4524736},{"n":"Stellar Advertising","m":"September","c":"Decor","p":"Car accessories","r":"East","ci":"Durgapur","s":"West Bengal","g":"Female","q":6233,"rt":675,"a":4207275},{"n":"Stellar Consulting Services","m":"September","c":"Electronic","p":"Laptop","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":1980,"rt":648,"a":1283040},{"n":"Stellar Finance Group","m":"September","c":"Electronic","p":"Laptop","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Female","q":2344,"rt":536,"a":1256384},{"n":"Stellar Innovations Group","m":"September","c":"Fashion","p":"Saree","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Male","q":6427,"rt":825,"a":5302275},{"n":"Stellar Realty","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"East","ci":"Patna","s":"Bihar","g":"Male","q":7217,"rt":935,"a":6747895},{"n":"Synergy Solutions Group","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"West","ci":"Nagpur","s":"Maharashtra","g":"Female","q":8442,"rt":618,"a":5217156},{"n":"Urban Legends Apparel","m":"September","c":"Electronic","p":"Laptop","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Female","q":9034,"rt":730,"a":6594820},{"n":"Urban Pulse Consulting","m":"September","c":"Fashion","p":"Suit","r":"North","ci":"Jaipur","s":"Rajasthan","g":"Male","q":7382,"rt":866,"a":6392812},{"n":"Visionary Health Systems","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"Central","ci":"Indore","s":"Madhya Pradesh","g":"Female","q":8766,"rt":813,"a":7126758},{"n":"Zenith Creative Ventures","m":"September","c":"Electronic","p":"Laptop","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Male","q":5549,"rt":973,"a":5399177},{"n":"Zenith Path Solutions","m":"September","c":"Decor","p":"Home d\u00e9cor","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Female","q":8952,"rt":760,"a":6803520},{"n":"Zenith Security Systems","m":"September","c":"Fashion","p":"Suit","r":"South","ci":"Hyderabad","s":"Telangana","g":"Male","q":1898,"rt":726,"a":1377948},{"n":"Zenith Tech Solutions","m":"September","c":"Fashion","p":"Saree","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Male","q":5990,"rt":859,"a":5145410},{"n":"Zenith Wellness Co.","m":"September","c":"Fashion","p":"Saree","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Female","q":2952,"rt":640,"a":1889280},{"n":"Apex Travel Ventures","m":"October","c":"Electronic","p":"Laptop","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Female","q":9014,"rt":687,"a":6192618},{"n":"Legacy Design Group","m":"October","c":"Fashion","p":"Saree","r":"North","ci":"Amritsar","s":"Punjab","g":"Female","q":9418,"rt":558,"a":5255244},{"n":"Noble Heights Builders","m":"October","c":"Electronic","p":"Laptop","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":5261,"rt":626,"a":3293386},{"n":"Pure Bliss Beverages","m":"October","c":"Electronic","p":"Laptop","r":"South","ci":"Kochi","s":"Kerala","g":"Female","q":6005,"rt":739,"a":4437695},{"n":"Radiant Foods","m":"October","c":"Electronic","p":"Laptop","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":5989,"rt":889,"a":5324221},{"n":"Supreme Wellness","m":"October","c":"Fashion","p":"Saree","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":8665,"rt":743,"a":6438095},{"n":"True Path Consulting","m":"October","c":"Fashion","p":"Saree","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":6023,"rt":707,"a":4258261},{"n":"Zenith Financial Services","m":"October","c":"Electronic","p":"Laptop","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":6350,"rt":615,"a":3905250},{"n":"Apex Media Co.","m":"November","c":"Fashion","p":"Saree","r":"East","ci":"Ranchi","s":"Jharkhand","g":"Female","q":7168,"rt":642,"a":4601856},{"n":"Crystal Wellness Group","m":"November","c":"Fashion","p":"Saree","r":"North","ci":"Jodhpur","s":"Rajasthan","g":"Female","q":3251,"rt":720,"a":2340720},{"n":"Harmony Marketing Co.","m":"November","c":"Fashion","p":"Saree","r":"South","ci":"Coimbatore","s":"Tamil Nadu","g":"Female","q":7991,"rt":910,"a":7271810},{"n":"Legacy Finance Group","m":"November","c":"Fashion","p":"Saree","r":"East","ci":"Durgapur","s":"West Bengal","g":"Female","q":6681,"rt":886,"a":5919366},{"n":"Pinnacle Design Ventures","m":"November","c":"Fashion","p":"Saree","r":"West","ci":"Vadodara","s":"Gujarat","g":"Female","q":8243,"rt":630,"a":5193090},{"n":"Pure Vision Solutions","m":"November","c":"Fashion","p":"Suit","r":"South","ci":"Kochi","s":"Kerala","g":"Female","q":8503,"rt":591,"a":5025273},{"n":"Radiant Educational Solutions","m":"November","c":"Fashion","p":"Saree","r":"North","ci":"Meerut","s":"Uttar Pradesh","g":"Female","q":1974,"rt":575,"a":1135050},{"n":"Stellar Innovations Co.","m":"November","c":"Fashion","p":"Saree","r":"North","ci":"Agra","s":"Uttar Pradesh","g":"Female","q":9739,"rt":947,"a":9222833},{"n":"Urban Tech Innovations","m":"November","c":"Fashion","p":"Saree","r":"South","ci":"Madurai","s":"Tamil Nadu","g":"Female","q":1888,"rt":682,"a":1287616},{"n":"Zenith Creative Solutions","m":"November","c":"Fashion","p":"Saree","r":"North","ci":"Varanasi","s":"Uttar Pradesh","g":"Female","q":7341,"rt":848,"a":6225168},{"n":"Apex Innovations Co.","m":"December","c":"Fashion","p":"Suit","r":"Central","ci":"Gwalior","s":"Madhya Pradesh","g":"Male","q":7995,"rt":910,"a":7275450},{"n":"Crystal Path Consulting","m":"December","c":"Fashion","p":"Suit","r":"East","ci":"Durgapur","s":"West Bengal","g":"Male","q":3649,"rt":503,"a":1835447},{"n":"Elite Creative Solutions","m":"December","c":"Decor","p":"Car accessories","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Female","q":7071,"rt":778,"a":5501238},{"n":"Harmony Edge Solutions","m":"December","c":"Fashion","p":"Suit","r":"North","ci":"Amritsar","s":"Punjab","g":"Male","q":1663,"rt":659,"a":1095917},{"n":"Horizon Ventures Co.","m":"December","c":"Decor","p":"Car accessories","r":"North","ci":"Amritsar","s":"Punjab","g":"Female","q":1696,"rt":868,"a":1472128},{"n":"Legacy Health Ventures","m":"December","c":"Fashion","p":"Suit","r":"West","ci":"Aurangabad","s":"Maharashtra","g":"Female","q":3099,"rt":601,"a":1862499},{"n":"Legacy Travel Ventures","m":"December","c":"Decor","p":"Car accessories","r":"East","ci":"Siliguri","s":"West Bengal","g":"Female","q":7710,"rt":954,"a":7355340},{"n":"Modern Travel Agency","m":"December","c":"Fashion","p":"Suit","r":"Central","ci":"Raipur","s":"Chhattisgarh","g":"Male","q":9541,"rt":984,"a":9388344},{"n":"Pinnacle Media Solutions","m":"December","c":"Decor","p":"Car accessories","r":"South","ci":"Mangalore","s":"Karnataka","g":"Female","q":3333,"rt":945,"a":3149685},{"n":"Pinnacle Spectrum Co.","m":"December","c":"Fashion","p":"Suit","r":"North","ci":"Shimla","s":"Himachal Pradesh","g":"Female","q":2916,"rt":767,"a":2236572},{"n":"Pure Harmony Health","m":"December","c":"Fashion","p":"Suit","r":"East","ci":"Jamshedpur","s":"Jharkhand","g":"Female","q":5228,"rt":781,"a":4083068},{"n":"Radiance Finance Services","m":"December","c":"Fashion","p":"Suit","r":"Northeast","ci":"Guwahati","s":"Assam","g":"Female","q":4048,"rt":713,"a":2886224},{"n":"Radiant Tech Solutions","m":"December","c":"Decor","p":"Car accessories","r":"West","ci":"Mumbai","s":"Maharashtra","g":"Female","q":4277,"rt":857,"a":3665389},{"n":"Stellar Design Group","m":"December","c":"Decor","p":"Car accessories","r":"North","ci":"Delhi","s":"Delhi","g":"Female","q":9277,"rt":839,"a":7783403},{"n":"Stellar Travel Products","m":"December","c":"Fashion","p":"Suit","r":"North","ci":"Dehradun","s":"Uttarakhand","g":"Female","q":5674,"rt":975,"a":5532150},{"n":"Zenith Educational Services","m":"December","c":"Fashion","p":"Suit","r":"East","ci":"Kolkata","s":"West Bengal","g":"Male","q":1737,"rt":571,"a":991827}];
+
+const CAT_COLORS = { Fashion:'#E8447A', Electronic:'#5B5FEF', Decor:'#F2A93B' };
+const PALETTE = ['#5B5FEF','#0EA5A0','#E8447A','#F2A93B','#20B26C','#8B5CF6','#EF6C4D','#2AA9D8','#C2410C','#0891B2'];
+const MONTH_ORDER = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function fmtINR(n){
+  if(n>=10000000) return '₹' + (n/10000000).toFixed(2) + ' Cr';
+  if(n>=100000) return '₹' + (n/100000).toFixed(2) + ' L';
+  if(n>=1000) return '₹' + (n/1000).toFixed(1) + ' K';
+  return '₹' + Math.round(n);
+}
+function fmtNum(n){ return n.toLocaleString('en-IN'); }
+
+function uniqueSorted(arr){ return [...new Set(arr)].sort(); }
+
+function populateSelect(id, values){
+  const sel = document.getElementById(id);
+  values.forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+}
+
+populateSelect('fRegion', uniqueSorted(RAW.map(d=>d.r)));
+populateSelect('fState', uniqueSorted(RAW.map(d=>d.s)));
+populateSelect('fCategory', uniqueSorted(RAW.map(d=>d.c)));
+populateSelect('fMonth', MONTH_ORDER.filter(m=>RAW.some(d=>d.m===m)));
+populateSelect('fGender', uniqueSorted(RAW.map(d=>d.g)));
+
+document.getElementById('hdrRegionCount').textContent = uniqueSorted(RAW.map(d=>d.r)).length;
+document.getElementById('hdrStateCount').textContent = uniqueSorted(RAW.map(d=>d.s)).length;
+document.getElementById('hdrTxCount').textContent = RAW.length;
+
+let charts = {};
+
+function destroyCharts(){
+  Object.values(charts).forEach(c=>c && c.destroy());
+  charts = {};
+}
+
+function getFiltered(){
+  const region = document.getElementById('fRegion').value;
+  const state = document.getElementById('fState').value;
+  const category = document.getElementById('fCategory').value;
+  const month = document.getElementById('fMonth').value;
+  const gender = document.getElementById('fGender').value;
+  return RAW.filter(d=>
+    (!region || d.r===region) &&
+    (!state || d.s===state) &&
+    (!category || d.c===category) &&
+    (!month || d.m===month) &&
+    (!gender || d.g===gender)
+  );
+}
+
+function sumBy(rows, keyFn){
+  const map = {};
+  rows.forEach(r=>{
+    const k = keyFn(r);
+    map[k] = (map[k]||0) + r.a;
+  });
+  return map;
+}
+function countBy(rows, keyFn){
+  const map = {};
+  rows.forEach(r=>{
+    const k = keyFn(r);
+    map[k] = (map[k]||0) + 1;
+  });
+  return map;
+}
+
+function render(){
+  const rows = getFiltered();
+  destroyCharts();
+
+  if(rows.length === 0){
+    document.getElementById('kpiRevenue').textContent = '₹0';
+    document.getElementById('kpiOrders').textContent = '0';
+    document.getElementById('kpiUnits').textContent = '0';
+    document.getElementById('kpiAOV').textContent = '₹0';
+    document.getElementById('kpiTopRegion').textContent = '—';
+    ['kpiRevenueSub','kpiOrdersSub','kpiUnitsSub','kpiAOVSub','kpiTopRegionSub'].forEach(id=>document.getElementById(id).innerHTML='&nbsp;');
+    document.getElementById('tblProducts').innerHTML = '<tr><td colspan="3" class="empty-state">No records match the selected filters</td></tr>';
+    document.getElementById('tblAccounts').innerHTML = '<tr><td colspan="3" class="empty-state">No records match the selected filters</td></tr>';
+    return;
+  }
+
+  // KPIs
+  const totalRevenue = rows.reduce((s,r)=>s+r.a,0);
+  const totalOrders = rows.length;
+  const totalUnits = rows.reduce((s,r)=>s+r.q,0);
+  const aov = totalRevenue/totalOrders;
+
+  const revByRegion = sumBy(rows, r=>r.r);
+  const topRegion = Object.entries(revByRegion).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('kpiRevenue').textContent = fmtINR(totalRevenue);
+  document.getElementById('kpiRevenueSub').textContent = fmtNum(totalRevenue) + ' total';
+  document.getElementById('kpiOrders').textContent = fmtNum(totalOrders);
+  document.getElementById('kpiOrdersSub').textContent = 'transactions';
+  document.getElementById('kpiUnits').textContent = fmtNum(totalUnits);
+  document.getElementById('kpiUnitsSub').textContent = 'units across all orders';
+  document.getElementById('kpiAOV').textContent = fmtINR(aov);
+  document.getElementById('kpiAOVSub').textContent = 'per transaction';
+  document.getElementById('kpiTopRegion').textContent = topRegion[0];
+  document.getElementById('kpiTopRegionSub').textContent = fmtINR(topRegion[1]) + ' revenue';
+
+  // Monthly trend
+  const monthsPresent = MONTH_ORDER.filter(m=>rows.some(r=>r.m===m));
+  const revByMonth = sumBy(rows, r=>r.m);
+  const ordByMonth = countBy(rows, r=>r.m);
+  charts.trend = new Chart(document.getElementById('chartTrend'), {
+    type:'bar',
+    data:{
+      labels: monthsPresent.map(m=>m.slice(0,3)),
+      datasets:[
+        {
+          type:'line', label:'Revenue', yAxisID:'y', order:0,
+          data: monthsPresent.map(m=>revByMonth[m]||0),
+          borderColor:'#5B5FEF', backgroundColor:'rgba(91,95,239,.12)',
+          borderWidth:2.5, tension:.35, fill:true, pointRadius:3,
+          pointBackgroundColor:'#5B5FEF', pointBorderColor:'#fff', pointBorderWidth:2,
+        },
+        {
+          type:'bar', label:'Orders', yAxisID:'y1', order:1,
+          data: monthsPresent.map(m=>ordByMonth[m]||0),
+          backgroundColor:'rgba(14,165,160,.35)', borderRadius:5, maxBarThickness:22,
+        }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'top', align:'end', labels:{boxWidth:10, usePointStyle:true, font:{size:11,family:'Manrope'}}},
+        tooltip:{callbacks:{label:(ctx)=>{
+          if(ctx.dataset.label==='Revenue') return ' Revenue: ' + fmtINR(ctx.raw);
+          return ' Orders: ' + ctx.raw;
+        }}}
+      },
+      scales:{
+        y:{position:'left', grid:{color:'#EEF0F5'}, ticks:{callback:v=>fmtINR(v), font:{size:10.5}}},
+        y1:{position:'right', grid:{display:false}, ticks:{font:{size:10.5}}},
+        x:{grid:{display:false}, ticks:{font:{size:11}}}
+      }
+    }
+  });
+
+  // Category donut
+  const revByCat = sumBy(rows, r=>r.c);
+  const catLabels = Object.keys(revByCat);
+  charts.category = new Chart(document.getElementById('chartCategory'), {
+    type:'doughnut',
+    data:{
+      labels: catLabels,
+      datasets:[{
+        data: catLabels.map(c=>revByCat[c]),
+        backgroundColor: catLabels.map(c=>CAT_COLORS[c]||'#999'),
+        borderWidth:3, borderColor:'#fff', hoverOffset:6,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:10, usePointStyle:true, padding:16, font:{size:12,family:'Manrope',weight:600}}},
+        tooltip:{callbacks:{label:(ctx)=>{
+          const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+          const pct = ((ctx.raw/total)*100).toFixed(1);
+          return ' ' + ctx.label + ': ' + fmtINR(ctx.raw) + ' (' + pct + '%)';
+        }}}
+      }
+    }
+  });
+
+  // Region bar
+  const regEntries = Object.entries(revByRegion).sort((a,b)=>b[1]-a[1]);
+  charts.region = new Chart(document.getElementById('chartRegion'), {
+    type:'bar',
+    data:{
+      labels: regEntries.map(e=>e[0]),
+      datasets:[{
+        data: regEntries.map(e=>e[1]),
+        backgroundColor: regEntries.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderRadius:7, maxBarThickness:34,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+fmtINR(ctx.raw)}}},
+      scales:{
+        y:{grid:{color:'#EEF0F5'}, ticks:{callback:v=>fmtINR(v), font:{size:10.5}}},
+        x:{grid:{display:false}, ticks:{font:{size:11,weight:600}}}
+      }
+    }
+  });
+
+  // Gender donut
+  const revByGender = sumBy(rows, r=>r.g);
+  const genLabels = Object.keys(revByGender);
+  charts.gender = new Chart(document.getElementById('chartGender'), {
+    type:'doughnut',
+    data:{
+      labels: genLabels,
+      datasets:[{
+        data: genLabels.map(g=>revByGender[g]),
+        backgroundColor:['#5B5FEF','#E8447A','#F2A93B'],
+        borderWidth:3, borderColor:'#fff', hoverOffset:6,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:10, usePointStyle:true, padding:16, font:{size:12,family:'Manrope',weight:600}}},
+        tooltip:{callbacks:{label:(ctx)=>{
+          const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+          const pct = ((ctx.raw/total)*100).toFixed(1);
+          return ' ' + ctx.label + ': ' + fmtINR(ctx.raw) + ' (' + pct + '%)';
+        }}}
+      }
+    }
+  });
+
+  // State bar (horizontal, top 12)
+  const revByState = sumBy(rows, r=>r.s);
+  const stateEntries = Object.entries(revByState).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  charts.state = new Chart(document.getElementById('chartState'), {
+    type:'bar',
+    data:{
+      labels: stateEntries.map(e=>e[0]),
+      datasets:[{
+        data: stateEntries.map(e=>e[1]),
+        backgroundColor: stateEntries.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderRadius:6, maxBarThickness:20,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+fmtINR(ctx.raw)}}},
+      scales:{
+        x:{grid:{color:'#EEF0F5'}, ticks:{callback:v=>fmtINR(v), font:{size:10.5}}},
+        y:{grid:{display:false}, ticks:{font:{size:11.5,weight:600}}}
+      }
+    }
+  });
+
+  // Top products table
+  const prodMap = {};
+  rows.forEach(r=>{
+    const k = r.p;
+    if(!prodMap[k]) prodMap[k] = {revenue:0, category:r.c};
+    prodMap[k].revenue += r.a;
+  });
+  const topProducts = Object.entries(prodMap).sort((a,b)=>b[1].revenue-a[1].revenue).slice(0,8);
+  const maxProdRev = topProducts.length ? topProducts[0][1].revenue : 1;
+  document.getElementById('tblProducts').innerHTML = topProducts.map((p,i)=>`
+    <tr>
+      <td><span class="rank">${i+1}</span>${p[0]}
+        <div class="bar-cell"><div class="bar-fill" style="width:${(p[1].revenue/maxProdRev*100).toFixed(0)}%"></div></div>
+      </td>
+      <td><span class="tag ${p[1].category}">${p[1].category}</span></td>
+      <td style="text-align:right;" class="amt">${fmtINR(p[1].revenue)}</td>
+    </tr>
+  `).join('');
+
+  // Top accounts table
+  const acctMap = {};
+  rows.forEach(r=>{
+    const k = r.n;
+    if(!acctMap[k]) acctMap[k] = {revenue:0, region:r.r};
+    acctMap[k].revenue += r.a;
+  });
+  const topAccounts = Object.entries(acctMap).sort((a,b)=>b[1].revenue-a[1].revenue).slice(0,8);
+  const maxAcctRev = topAccounts.length ? topAccounts[0][1].revenue : 1;
+  document.getElementById('tblAccounts').innerHTML = topAccounts.map((a,i)=>`
+    <tr>
+      <td><span class="rank">${i+1}</span>${a[0]}
+        <div class="bar-cell"><div class="bar-fill" style="width:${(a[1].revenue/maxAcctRev*100).toFixed(0)}%"></div></div>
+      </td>
+      <td>${a[1].region}</td>
+      <td style="text-align:right;" class="amt">${fmtINR(a[1].revenue)}</td>
+    </tr>
+  `).join('');
+}
+
+// State options should narrow when region changes (optional UX improvement)
+document.getElementById('fRegion').addEventListener('change', function(){
+  const region = this.value;
+  const stateSel = document.getElementById('fState');
+  const currentState = stateSel.value;
+  stateSel.innerHTML = '<option value="">All States</option>';
+  const states = uniqueSorted(RAW.filter(d=>!region || d.r===region).map(d=>d.s));
+  populateSelect('fState', states);
+  if(states.includes(currentState)) stateSel.value = currentState;
+  render();
+});
+
+['fState','fCategory','fMonth','fGender'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', render);
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  ['fRegion','fState','fCategory','fMonth','fGender'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fRegion').dispatchEvent(new Event('change'));
+});
+
+render();
+</script>
+</body>
+</html>
